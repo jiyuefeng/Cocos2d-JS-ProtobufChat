@@ -1,0 +1,9 @@
+{
+  "name" : "cocos2d-js-protobuf-chat",
+  "version" : "0.0.1",
+  "description" : "cocos2d-js-protobuf-chat",
+  "dependencies" : {
+    "socket.io" : "~0.9.6",
+    "mime" : "~1.2.7"
+  }
+}
