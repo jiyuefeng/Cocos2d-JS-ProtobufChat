@@ -1,9 +1,30 @@
 <!doctype html>
 <html>
-	<head>
+	</head>
 		<title>Cocos2d-JS-ProtobufChat</title>
+		<link rel="stylesheet" href="css/main.css">
 	</head>
 	<body>
-		<p>Cocos2d-JS-ProtobufChat</p>
+		<div id="content">
+			<h3>Cocos2d-JS-ProtobufChat</h3>
+			<div id="room"></div>
+			<div id="roomList"></div>
+			<div id="messages"></div>
+			<form id="sendForm">
+				<input id="sendMessage"/>
+				<input id="sendButton" type="submit" value="Send"/>
+				<div id="help">
+					Chat commands:
+					<ul>
+						<li>Change Name: <code>nick [user name]</code></li>
+						<li>Join/Create Room: <code>join [room name]</code></li>
+					</ul>
+				</div>
+			</form>
+		</div>
+		<script type="text/javascript" src="js/socket.io.js"></script>
+		<script type="text/javascript" src="js/jquery-1.8.3.min.js"></script>
+		<script type="text/javascript" src="js/chat.js"></script>
+		<script type="text/javascript" src="js/chatUI.js"></script>
 	</body>
 </html>

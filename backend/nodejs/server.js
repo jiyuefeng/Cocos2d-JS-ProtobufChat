@@ -3,6 +3,8 @@ var fs = require("fs");
 var path = require("path");
 var mime = require("mime");
 
+var chatServer = require("./lib/chatServer.js");
+
 var cache = {};
 var port = 3000;
 
@@ -21,6 +23,8 @@ var server = http.createServer(function(request, response){
 server.listen(port, function(){
     console.log("Server listening on porn "+port);
 });
+
+chatServer.listen(server);
 
 function send404(response){
     response.writeHead(404, {"content-type":"text/plain"});
