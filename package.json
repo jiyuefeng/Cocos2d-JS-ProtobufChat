@@ -3,7 +3,7 @@
   "version" : "0.0.1",
   "description" : "cocos2d-js-protobuf-chat",
   "dependencies" : {
-    "socket.io" : "~0.9.6",
+    "socket.io" : "~1.4.5",
     "mime" : "~1.2.7"
   }
 }

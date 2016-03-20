@@ -1,39 +1,39 @@
-var http = require("http");
-var fs = require("fs");
-var path = require("path");
-var mime = require("mime");
+var http = require('http');
+var fs = require('fs');
+var path = require('path');
+var mime = require('mime');
 
-var chatServer = require("./lib/chatServer.js");
+var chatServer = require('./lib/chatServer.js');
 
 var cache = {};
 var port = 3000;
 
 var server = http.createServer(function(request, response){
     var filePath = false;
-    if(request.url == "/"){
-        filePath = "public/index.html";
+    if(request.url == '/'){
+        filePath = 'index.html';
     }else{
-        filePath = "public/"+request.url;
+        filePath = request.url;
     }
 
-    var absPath = "../../frontend/http/"+filePath;
+    var absPath = '../../frontend/http/'+filePath;
     serveStatic(response, cache, absPath);
 });
 
 server.listen(port, function(){
-    console.log("Server listening on porn "+port);
+    console.log('Server listening on porn '+port);
 });
 
 chatServer.listen(server);
 
 function send404(response){
-    response.writeHead(404, {"content-type":"text/plain"});
-    response.write("Error 404: resource not found.");
+    response.writeHead(404, {'content-type':'text/plain'});
+    response.write('Error 404: resource not found.');
     response.end();
 }
 
 function sendFile(response, filePath, fileContens){
-    response.writeHead(200, {"content-type":mime.lookup(path.basename(filePath))});
+    response.writeHead(200, {'content-type':mime.lookup(path.basename(filePath))});
     response.end(fileContens);
 }
 

@@ -2,7 +2,7 @@
 <html>
 	</head>
 		<title>Cocos2d-JS-ProtobufChat</title>
-		<link rel="stylesheet" href="css/main.css">
+		<link rel="stylesheet" href="static/css/main.css">
 	</head>
 	<body>
 		<div id="content">
@@ -16,15 +16,18 @@
 				<div id="help">
 					Chat commands:
 					<ul>
-						<li>Change Name: <code>nick [user name]</code></li>
+						<li>Change Name: <code>name [user name]</code></li>
 						<li>Join/Create Room: <code>join [room name]</code></li>
 					</ul>
 				</div>
 			</form>
 		</div>
-		<script type="text/javascript" src="js/socket.io.js"></script>
-		<script type="text/javascript" src="js/jquery-1.8.3.min.js"></script>
-		<script type="text/javascript" src="js/chat.js"></script>
-		<script type="text/javascript" src="js/chatUI.js"></script>
+		<script data-main="static/js/config" src="static/js/lib/require.js"></script>
+		<!--
+		<script type="text/javascript" src="static/js/lib/socket.io.js"></script>
+		<script type="text/javascript" src="static/js/lib/jquery-1.8.3.min.js"></script>
+		<script type="text/javascript" src="static/js/chat.js"></script>
+		<script type="text/javascript" src="static/js/chatUI.js"></script>
+		-->
 	</body>
 </html>
