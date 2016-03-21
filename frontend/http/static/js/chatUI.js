@@ -45,11 +45,11 @@ define(['jquery', 'socketio', 'protocol', 'chat'], function($, socketio, protoco
                     $roomList.append(divEscapedContentElement(room));
                 }
             }
-        });
 
-        $('#roomList div').click(function () {
-            chatApp.processCommand('/join ' + $(this).text())
-            $sendMessage.focus();
+            $('#roomList div').click(function () {
+                chatApp.processCommand('/join ' + $(this).text())
+                $sendMessage.focus();
+            });
         });
 
         setInterval(function () {
