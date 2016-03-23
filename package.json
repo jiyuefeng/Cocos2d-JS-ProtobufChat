@@ -4,6 +4,7 @@
   "description" : "cocos2d-js-protobuf-chat",
   "dependencies" : {
     "socket.io" : "~1.4.5",
-    "mime" : "~1.2.7"
+    "mime" : "~1.2.7",
+    "protobufjs": "~3"
   }
 }

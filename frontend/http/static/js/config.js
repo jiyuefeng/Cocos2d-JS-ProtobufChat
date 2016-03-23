@@ -3,8 +3,11 @@ require.config({
         jquery:'lib/jquery-1.8.3.min',
         socketio:'lib/socket.io/socket.io',
         protocol:'protocol',
+        ByteBuffer:'lib/protobuf/ByteBufferAB',
+        Long:'lib/protobuf/Long',
+        ProtoBuf:'lib/protobuf/ProtoBuf',
         chat:'chat',
-        chatUI:'chatUI',
+        chatUI:'chatUIProto',
     }
 });
 

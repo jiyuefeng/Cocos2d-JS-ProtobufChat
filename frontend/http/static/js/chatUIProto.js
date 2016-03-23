@@ -2,7 +2,13 @@
 //var MSG = chatServer.MSG;
 //var RESULT = chatServer.RESULT;
 
-define(['jquery', 'socketio', 'protocol', 'chat'], function($, socketio, protocol, chat) {
+define(['jquery', 'socketio', 'protocol', 'chat', 'ByteBuffer', 'Long', 'ProtoBuf'], function($, socketio, protocol, chat, ByteBuffer, Long, ProtoBuf) {
+    console.log(ProtoBuf);
+    var ChatProtocolBuffer = ProtoBuf.loadProtoFile("static/js/lib/protobuf/ChatProtoBuf.proto")
+            .build("ChatProtocolBuffer"),
+        TestProto = ChatProtocolBuffer.TestProto;
+    console.log(TestProto);
+
     var MSG = protocol.MSG;
     var RESULT = protocol.RESULT;
 
@@ -36,7 +42,10 @@ define(['jquery', 'socketio', 'protocol', 'chat'], function($, socketio, protoco
         });
 
         socket.on(MSG.rooms, function (rooms) {
-            console.log(rooms);
+            var roomsMsg = TestProto.decode(rooms);
+            console.log(roomsMsg);
+            console.log(roomsMsg.gold);
+
             $roomList.empty();
 
             for (var room in rooms) {

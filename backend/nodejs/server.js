@@ -3,7 +3,8 @@ var fs = require('fs');
 var path = require('path');
 var mime = require('mime');
 
-var chatServer = require('./lib/chatServer.js');
+//var chatServer = require('./lib/chatServer.js');
+var chatServer = require('./lib/chatServerProto.js');
 
 var cache = {};
 var port = 3000;
