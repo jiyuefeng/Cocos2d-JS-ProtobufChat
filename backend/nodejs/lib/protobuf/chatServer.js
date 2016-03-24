@@ -2,12 +2,12 @@ var path = require('path');
 var ProtoBuf = require("protobufjs");
 //console.log(ProtoBuf);
 console.log(__dirname);
-var ChatProtocolBuffer = ProtoBuf.loadProtoFile(path.join(__dirname, "/protobuf/ChatProtoBuf.proto"))
+var ChatProtocolBuffer = ProtoBuf.loadProtoFile(path.join(__dirname, "./ChatProtoBuf.proto"))
         .build("ChatProtocolBuffer"),
     TestProto = ChatProtocolBuffer.TestProto;
 console.log(TestProto);
 
-var protocol = require('./protocol');
+var protocol = require('../protocol');
 var MSG = protocol.MSG;
 var RESULT = protocol.RESULT;
 

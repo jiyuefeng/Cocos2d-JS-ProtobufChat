@@ -1,4 +1,4 @@
-define(function(){
+define(function(require, exports, module){
     var MSG = {
         connection:'connection',
         message:'message',

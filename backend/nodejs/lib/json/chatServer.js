@@ -1,4 +1,4 @@
-var protocol = require('./protocol');
+var protocol = require('../protocol');
 var MSG = protocol.MSG;
 var RESULT = protocol.RESULT;
 
