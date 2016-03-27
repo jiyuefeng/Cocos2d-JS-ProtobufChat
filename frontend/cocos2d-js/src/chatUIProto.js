@@ -32,6 +32,7 @@ define(['socketio', 'protocol', 'chat', 'ByteBuffer', 'Long', 'ProtoBuf'], funct
         rowHeight:25,
         bottomPadding:10,
         scrollView:null,
+        texts:[],
 
         textField:null,
 
@@ -42,7 +43,7 @@ define(['socketio', 'protocol', 'chat', 'ByteBuffer', 'Long', 'ProtoBuf'], funct
 
             // Create the scrollview
             var scrollView = this.scrollView = new ccui.ScrollView();
-            scrollView.setDirection(ccui.ScrollView.DIR_BOTH);
+            scrollView.setDirection(ccui.ScrollView.DIR_VERTICAL);
             scrollView.setTouchEnabled(true);
             scrollView.setBounceEnabled(true);
             scrollView.setContentSize(cc.size(512, 400));
@@ -130,6 +131,15 @@ define(['socketio', 'protocol', 'chat', 'ByteBuffer', 'Long', 'ProtoBuf'], funct
             text.x = 0;
             text.y = this.scrollView.getInnerContainerSize().height - (this.rowHeight+this.bottomPadding)*(this.textCount);
             this.scrollView.addChild(text);
+
+            /*this.texts.push(text);
+            if(this.texts.length > 5){
+                this.scrollView.removeAllChildren();
+                this.texts = [];
+                //this.scrollView.removeChild(this.texts.shift());
+            }*/
+
+            this.scrollView.jumpToPercentVertical(5);
         },
 
         textFieldEvent: function (textField, type) {
