@@ -2,7 +2,8 @@
 //var MSG = chatServer.MSG;
 //var RESULT = chatServer.RESULT;
 
-define(['jquery', 'socketio', 'protocol', 'chat', 'ByteBuffer', 'Long', 'ProtoBuf'], function($, socketio, protocol, chat, ByteBuffer, Long, ProtoBuf) {
+define(['jquery', 'socketio', 'protocol', 'chat', 'ByteBuffer', 'Long', 'ProtoBuf'],
+    function($, socketio, protocol, chat, ByteBuffer, Long, ProtoBuf) {
     console.log(ProtoBuf);
     var ChatProtocolBuffer = ProtoBuf.loadProtoFile("static/js/lib/protobuf/ChatProtoBuf.proto")
             .build("ChatProtocolBuffer"),
@@ -12,7 +13,7 @@ define(['jquery', 'socketio', 'protocol', 'chat', 'ByteBuffer', 'Long', 'ProtoBu
     var MSG = protocol.MSG;
     var RESULT = protocol.RESULT;
 
-    var socket = socketio.connect();
+    var socket = socketio.connect('localhost:3000');
     console.log(socket);
 
     $(document).ready(function () {

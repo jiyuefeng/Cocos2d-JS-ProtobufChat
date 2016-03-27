@@ -6,6 +6,9 @@ var mime = require('mime');
 //var chatType = 'json';
 var chatType = 'protobuf';
 
+//var frontend = 'http';
+var frontend = 'cocos2d-js';
+
 var chatServer = require('./lib/'+chatType+'/chatServer.js');
 
 var cache = {};
@@ -19,7 +22,7 @@ var server = http.createServer(function(request, response){
         filePath = request.url;
     }
 
-    var absPath = '../../frontend/http/'+filePath;
+    var absPath = '../../frontend/'+frontend+'/'+filePath;
     serveStatic(response, cache, absPath);
 });
 

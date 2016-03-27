@@ -6,7 +6,7 @@ define(['jquery', 'socketio', 'protocol', 'chat'], function($, socketio, protoco
     var MSG = protocol.MSG;
     var RESULT = protocol.RESULT;
 
-    var socket = socketio.connect();
+    var socket = socketio.connect('localhost:3000');
     console.log(socket);
 
     $(document).ready(function () {

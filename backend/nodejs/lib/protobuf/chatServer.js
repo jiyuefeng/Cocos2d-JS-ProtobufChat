@@ -62,12 +62,13 @@ exports.listen = function(server){
 }
 
 function assignGuestName(socket, guestNum, userNames, namesUsed){
+    console.log('assignGuestName...');
     var userName = USER_NAME_PREFIX+guestNum;
     userNames[socket.id] = userName;
-    socket.emit(RESULT.nameResult, {
+    socket.emit(RESULT.nameResult, new ChatProtocolBuffer.NameResultProto({
         success:true,
         name:userName
-    });
+    }).toBuffer());
     namesUsed.push(userName);
     return guestNum+1;
 }
@@ -84,17 +85,21 @@ function joinRoom(socket, room){
 
     socket.join(room);
     currentRoom[socket.id] = room;
-    socket.emit(RESULT.joinResult, {room:room});
-    socket.broadcast.to(room).emit(MSG.message, {
+    socket.emit(RESULT.joinResult, new ChatProtocolBuffer.JoinResultProto({
+        room:room
+    }).toBuffer());
+    socket.broadcast.to(room).emit(MSG.message, new ChatProtocolBuffer.MessageProto({
         text:userNames[socket.id]+' has joined '+room+'!'
-    });
+    }).toBuffer());
 
     //console.log(socket.id+' '+room);
     //console.log(io);
     //console.log("\n\n\n");
     //console.log(io.sockets);
 
-    socket.emit(MSG.message, {text:usersInRoomSummary(room)});
+    socket.emit(MSG.message, new ChatProtocolBuffer.MessageProto({
+        text:usersInRoomSummary(room)
+    }).toBuffer());
 }
 
 function usersInRoomSummary(room){
@@ -122,9 +127,10 @@ function usersInRoomSummary(room){
 
 function handleBroadcastMessage(socket, userNames){
     socket.on(MSG.message, function(message){
-        socket.broadcast.to(message.room).emit(MSG.message, {
+        message = ChatProtocolBuffer.MessageProto.decode(message);
+        socket.broadcast.to(message.room).emit(MSG.message, new ChatProtocolBuffer.MessageProto({
             text:userNames[socket.id]+': '+message.text
-        });
+        }).toBuffer());
     });
 }
 

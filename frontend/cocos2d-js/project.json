@@ -13,6 +13,7 @@
 
     "jsList" : [
         "src/resource.js",
-        "src/app.js"
+        "src/lib/require.js",
+        "src/config.js"
     ]
 }
