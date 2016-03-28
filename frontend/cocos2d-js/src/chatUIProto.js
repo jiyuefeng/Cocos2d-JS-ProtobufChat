@@ -28,11 +28,10 @@ define(['socketio', 'protocol', 'chat', 'ByteBuffer', 'Long', 'ProtoBuf'], funct
         room:null,
 
         textCount:0,
-        row:36,
+        row:20,
         rowHeight:25,
         bottomPadding:10,
         scrollView:null,
-        texts:[],
 
         textField:null,
 
@@ -124,6 +123,11 @@ define(['socketio', 'protocol', 'chat', 'ByteBuffer', 'Long', 'ProtoBuf'], funct
         },
 
         appendText:function(message){
+            if(this.textCount >= this.row-1){
+                this.scrollView.removeAllChildren();
+                this.textCount = 0;
+            }
+
             this.textCount++;
             var text = new ccui.Text(message, "Thonburi", 20);
             text.color = cc.color(255, 255, 0);
@@ -132,14 +136,11 @@ define(['socketio', 'protocol', 'chat', 'ByteBuffer', 'Long', 'ProtoBuf'], funct
             text.y = this.scrollView.getInnerContainerSize().height - (this.rowHeight+this.bottomPadding)*(this.textCount);
             this.scrollView.addChild(text);
 
-            /*this.texts.push(text);
-            if(this.texts.length > 5){
-                this.scrollView.removeAllChildren();
-                this.texts = [];
-                //this.scrollView.removeChild(this.texts.shift());
-            }*/
-
-            this.scrollView.jumpToPercentVertical(5);
+            var percent = (this.textCount-1)/this.row;
+            //cc.log(percent);
+            if(percent == 0 || percent > 0.5){
+                this.scrollView.jumpToPercentVertical((percent+0.01) * 100);
+            }
         },
 
         textFieldEvent: function (textField, type) {
