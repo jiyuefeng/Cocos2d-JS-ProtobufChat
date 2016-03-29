@@ -13,9 +13,10 @@ define(['socketio', 'protocol', 'chat', 'ByteBuffer', 'Long', 'ProtoBuf'], funct
         onEnter:function () {
             this._super();
 
-            var layerGradient = new cc.LayerGradient(cc.color(255, 0, 0), cc.color(0, 0, 255));
-            cc.log("cc.winSize="+cc.winSize);
-            this.addChild(layerGradient, 0);
+            //var layerGradient = new cc.LayerGradient(cc.color(255, 0, 0), cc.color(0, 0, 255));
+            //this.addChild(layerGradient, 0);
+            var layerColor = new cc.LayerColor(cc.color('#202020'));
+            this.addChild(layerColor, 0);
 
             this.addChild(new ChatLayer());
         }
@@ -46,7 +47,7 @@ define(['socketio', 'protocol', 'chat', 'ByteBuffer', 'Long', 'ProtoBuf'], funct
             scrollView.setTouchEnabled(true);
             scrollView.setBounceEnabled(true);
             scrollView.setContentSize(cc.size(512, 400));
-            scrollView.x = size.width/2;
+            scrollView.x = size.width/2 - 60;
             scrollView.y = size.height/1.7;
             scrollView.setAnchorPoint(cc.p(0.5,0.5));
             cc.log('_autoScroll='+scrollView._autoScroll);
@@ -54,14 +55,11 @@ define(['socketio', 'protocol', 'chat', 'ByteBuffer', 'Long', 'ProtoBuf'], funct
             cc.log('_autoScroll='+scrollView._autoScroll);
 
             var start = this.room = new ccui.Text("--- Room ---", "Marker Felt", 30);
-            start.x = scrollView.x;
+            start.x = size.width/2;
             start.y = size.height - start.height;
-            this.addChild(start);
+            this.addChild(start, 1);
 
             var innerWidth = scrollView.width;
-            //var row = 36;
-            //var rowHeight = 25;
-            //var bottomPadding = 10;
             var innerHeight = this.row*this.rowHeight + this.row*this.bottomPadding;
             scrollView.setInnerContainerSize(cc.size(innerWidth, innerHeight));
 
@@ -77,14 +75,55 @@ define(['socketio', 'protocol', 'chat', 'ByteBuffer', 'Long', 'ProtoBuf'], funct
             }*/
             //scrollView.jumpToLeft();
 
-            this.addChild(scrollView);
+            this.addChild(scrollView, 1);
 
             // Create the textfield
             var textField = this.textField = new ccui.TextField("PlaceHolder", "Marker Felt", 30);
             textField.x = size.width / 2;
             textField.y = 100;
             textField.addEventListener(this.textFieldEvent, this);
-            this.addChild(textField);
+            this.addChild(textField, 1);
+
+            // Create the layout
+            var layout = new ccui.Layout();
+            layout.setBackGroundColorType(ccui.Layout.BG_COLOR_SOLID);
+            layout.setBackGroundColor(cc.color(128, 128, 128));
+            var scrollViewSize = scrollView.getContentSize();
+            layout.setContentSize(cc.size(scrollViewSize.width+20, scrollViewSize.height+10));
+            var layoutRect = layout.getContentSize();
+            layout.x = scrollView.x - layoutRect.width/ 2;
+            layout.y = scrollView.y - layoutRect.height / 2;
+            this.addChild(layout, 0);
+
+            var layout2 = new ccui.Layout();
+            layout2.setBackGroundColorType(layout.getBackGroundColorType());
+            layout2.setBackGroundColor(layout.getBackGroundColor());
+            layout2.setContentSize(cc.size(100, layout.getContentSize().height));
+            var layoutRect = layout.getContentSize();
+            layout2.x = layout.x + layoutRect.width + 20;
+            layout2.y = layout.y;
+            this.addChild(layout2, 0);
+
+            var scrollView2 = new ccui.ScrollView();
+            scrollView2.setDirection(ccui.ScrollView.DIR_VERTICAL);
+            scrollView2.setTouchEnabled(true);
+            scrollView2.setBounceEnabled(true);
+            scrollView2.setContentSize(cc.size(512, 400));
+            //scrollView2.x = size.width/2 - 60;
+            //scrollView2.y = size.height/1.7;
+            scrollView2.setAnchorPoint(cc.p(0.5,0.5));
+
+            var innerWidth2 = scrollView2.width;
+            var innerHeight2 = this.row*this.rowHeight + this.row*this.bottomPadding;
+            scrollView2.setInnerContainerSize(cc.size(innerWidth2, innerHeight2));
+            cc.log("i="+i);
+            text = new ccui.Text(i, "Thonburi", 20);
+            text.color = cc.color(255, 255, 0);
+            text.anchorX = 0;
+            text.x = 0;
+            text.y = scrollView2.getInnerContainerSize().height - (this.rowHeight+this.bottomPadding);
+            scrollView2.addChild(text);
+            layout2.addChild(scrollView2);
 
             this._init();
 
