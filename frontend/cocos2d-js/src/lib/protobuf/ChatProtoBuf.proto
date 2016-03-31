@@ -26,3 +26,7 @@ message MessageProto{
 	optional string text = 1;
 	optional string room = 2;
 }
+
+message RoomsProto{
+	repeated string rooms = 1;
+}

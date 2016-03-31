@@ -187,7 +187,7 @@ function handleQueryRooms(socket){
     socket.on(MSG.rooms, function(){
         //socket.emit(MSG.rooms, existsRooms);
 
-        var testProtoData = new TestProto({
+        /*var testProtoData = new TestProto({
             id:10004,
             name:"testProtoName测试12",
             rank:3,
@@ -195,8 +195,15 @@ function handleQueryRooms(socket){
             exp:158,
             diamond:34534
         });
-        socket.emit(MSG.rooms, testProtoData.toBuffer());
+        socket.emit(MSG.rooms, testProtoData.toBuffer());*/
 
+        var rooms = [];
+        for(room in existsRooms){
+            rooms.push(room);
+        }
+        socket.emit(MSG.rooms, new ChatProtocolBuffer.RoomsProto({
+            rooms:rooms
+        }).toBuffer());
     });
 }
 

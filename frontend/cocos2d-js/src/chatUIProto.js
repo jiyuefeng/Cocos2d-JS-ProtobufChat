@@ -32,7 +32,10 @@ define(['socketio', 'protocol', 'chat', 'ByteBuffer', 'Long', 'ProtoBuf'], funct
         row:20,
         rowHeight:25,
         bottomPadding:10,
-        scrollView:null,
+        chatScrollView:null,
+
+        roomScrollView:null,
+        roomList:[],
 
         textField:null,
 
@@ -41,41 +44,72 @@ define(['socketio', 'protocol', 'chat', 'ByteBuffer', 'Long', 'ProtoBuf'], funct
 
             var size = cc.winSize;
 
+            var room = this.room = new ccui.Text("--- Room ---", "Marker Felt", 30);
+            room.x = size.width/2;
+            room.y = size.height - room.height;
+            this.addChild(room);
+
+            // Create the layout
+            var layout = new ccui.Layout();
+            layout.setContentSize(cc.size(650, 400));
+            var layoutRect = layout.getContentSize();
+            layout.x = size.width/2 - layoutRect.width/2;
+            layout.y = size.height/2 - layoutRect.height/2 + 50;
+            this.addChild(layout);
+
+            var chatPanel = new ccui.Layout();
+            chatPanel.setBackGroundColorType(ccui.Layout.BG_COLOR_SOLID);
+            chatPanel.setBackGroundColor(cc.color(128, 128, 128));
+            chatPanel.setContentSize(cc.size(512, 400));
+            layout.addChild(chatPanel);
+
+            //var hello = new cc.Sprite(res.HelloWorld_png);
+            //layout.addChild(hello);
+
+            //var layerColor = new cc.LayerColor(cc.color(0, 0, 0));
+            //layout.addChild(layerColor);
+
             // Create the scrollview
-            var scrollView = this.scrollView = new ccui.ScrollView();
-            scrollView.setDirection(ccui.ScrollView.DIR_VERTICAL);
-            scrollView.setTouchEnabled(true);
-            scrollView.setBounceEnabled(true);
-            scrollView.setContentSize(cc.size(512, 400));
-            scrollView.x = size.width/2 - 60;
-            scrollView.y = size.height/1.7;
-            scrollView.setAnchorPoint(cc.p(0.5,0.5));
-            cc.log('_autoScroll='+scrollView._autoScroll);
-            scrollView._autoScroll = true;
-            cc.log('_autoScroll='+scrollView._autoScroll);
+            var chatScrollView = this.chatScrollView = new ccui.ScrollView();
+            chatScrollView.setDirection(ccui.ScrollView.DIR_VERTICAL);
+            chatScrollView.setTouchEnabled(true);
+            chatScrollView.setBounceEnabled(true);
+            chatScrollView.setContentSize(cc.size(512, 400));
+            chatScrollView.x = 10;
+            //chatScrollView.setAnchorPoint(cc.p(0.5,0.5));
 
-            var start = this.room = new ccui.Text("--- Room ---", "Marker Felt", 30);
-            start.x = size.width/2;
-            start.y = size.height - start.height;
-            this.addChild(start, 1);
-
-            var innerWidth = scrollView.width;
+            var innerWidth = chatScrollView.width;
             var innerHeight = this.row*this.rowHeight + this.row*this.bottomPadding;
-            scrollView.setInnerContainerSize(cc.size(innerWidth, innerHeight));
+            chatScrollView.setInnerContainerSize(cc.size(innerWidth, innerHeight));
+            chatPanel.addChild(chatScrollView);
 
-            /*for(var i = 0; i < this.row; i++){
-                //var text = new cc.LabelTTF("This is a test label: " + i,"Microsoft YaHei",14,cc.TEXT_ALIGNMENT_LEFT);
-                var text = new ccui.Text("This is a test 测试 label: " + i, "Thonburi", 20);
-                text.color = cc.color(255, 255, 0);
-                text.anchorX = 0;
-                text.x = 0;
-                text.y = scrollView.getInnerContainerSize().height - (this.rowHeight+this.bottomPadding)*(i+1);
+            var roomPanel = new ccui.Layout();
+            roomPanel.setBackGroundColorType(chatPanel.getBackGroundColorType());
+            roomPanel.setBackGroundColor(chatPanel.getBackGroundColor());
+            roomPanel.setContentSize(cc.size(100, chatPanel.getContentSize().height));
+            var layoutRect = chatPanel.getContentSize();
+            roomPanel.x = chatPanel.x + chatPanel.width + 20;
+            roomPanel.y = chatPanel.y;
+            layout.addChild(roomPanel);
 
-                scrollView.addChild(text);
-            }*/
-            //scrollView.jumpToLeft();
+            var roomScrollView = this.roomScrollView = new ccui.ScrollView();
+            roomScrollView.setDirection(ccui.ScrollView.DIR_VERTICAL);
+            roomScrollView.setTouchEnabled(true);
+            roomScrollView.setBounceEnabled(true);
+            roomScrollView.setContentSize(cc.size(512, 400));
+            roomScrollView.x = 5;
 
-            this.addChild(scrollView, 1);
+            var innerWidth2 = roomScrollView.width;
+            var innerHeight2 = this.row*this.rowHeight + this.row*this.bottomPadding;
+            roomScrollView.setInnerContainerSize(cc.size(innerWidth2, innerHeight2));
+            //cc.log("i="+i);
+            //text = new ccui.Text(i, "Thonburi", 20);
+            //text.color = cc.color(255, 255, 0);
+            //text.anchorX = 0;
+            //text.x = 0;
+            //text.y = roomScrollView.getInnerContainerSize().height - (this.rowHeight+this.bottomPadding);
+            //roomScrollView.addChild(text);
+            roomPanel.addChild(roomScrollView);
 
             // Create the textfield
             var textField = this.textField = new ccui.TextField("PlaceHolder", "Marker Felt", 30);
@@ -83,47 +117,6 @@ define(['socketio', 'protocol', 'chat', 'ByteBuffer', 'Long', 'ProtoBuf'], funct
             textField.y = 100;
             textField.addEventListener(this.textFieldEvent, this);
             this.addChild(textField, 1);
-
-            // Create the layout
-            var layout = new ccui.Layout();
-            layout.setBackGroundColorType(ccui.Layout.BG_COLOR_SOLID);
-            layout.setBackGroundColor(cc.color(128, 128, 128));
-            var scrollViewSize = scrollView.getContentSize();
-            layout.setContentSize(cc.size(scrollViewSize.width+20, scrollViewSize.height+10));
-            var layoutRect = layout.getContentSize();
-            layout.x = scrollView.x - layoutRect.width/ 2;
-            layout.y = scrollView.y - layoutRect.height / 2;
-            this.addChild(layout, 0);
-
-            var layout2 = new ccui.Layout();
-            layout2.setBackGroundColorType(layout.getBackGroundColorType());
-            layout2.setBackGroundColor(layout.getBackGroundColor());
-            layout2.setContentSize(cc.size(100, layout.getContentSize().height));
-            var layoutRect = layout.getContentSize();
-            layout2.x = layout.x + layoutRect.width + 20;
-            layout2.y = layout.y;
-            this.addChild(layout2, 0);
-
-            var scrollView2 = new ccui.ScrollView();
-            scrollView2.setDirection(ccui.ScrollView.DIR_VERTICAL);
-            scrollView2.setTouchEnabled(true);
-            scrollView2.setBounceEnabled(true);
-            scrollView2.setContentSize(cc.size(512, 400));
-            //scrollView2.x = size.width/2 - 60;
-            //scrollView2.y = size.height/1.7;
-            scrollView2.setAnchorPoint(cc.p(0.5,0.5));
-
-            var innerWidth2 = scrollView2.width;
-            var innerHeight2 = this.row*this.rowHeight + this.row*this.bottomPadding;
-            scrollView2.setInnerContainerSize(cc.size(innerWidth2, innerHeight2));
-            cc.log("i="+i);
-            text = new ccui.Text(i, "Thonburi", 20);
-            text.color = cc.color(255, 255, 0);
-            text.anchorX = 0;
-            text.x = 0;
-            text.y = scrollView2.getInnerContainerSize().height - (this.rowHeight+this.bottomPadding);
-            scrollView2.addChild(text);
-            layout2.addChild(scrollView2);
 
             this._init();
 
@@ -146,24 +139,63 @@ define(['socketio', 'protocol', 'chat', 'ByteBuffer', 'Long', 'ProtoBuf'], funct
                 } else {
                     message = result.message;
                 }
-                self.appendText(message);
+                self.appendMessage(message);
             });
 
             socket.on(RESULT.joinResult, function (result) {
                 result = ChatProtocolBuffer.JoinResultProto.decode(result);
                 self.room.setString(result.room);
-                self.appendText('Room changed!');
+                self.appendMessage('Room changed!');
             });
 
             socket.on(MSG.message, function (message) {
                 message = ChatProtocolBuffer.MessageProto.decode(message);
-                self.appendText(message.text);
+                self.appendMessage(message.text);
             });
+
+            socket.on(MSG.rooms, function (rooms) {
+                console.log(rooms);
+                rooms = ChatProtocolBuffer.RoomsProto.decode(rooms).rooms;
+                console.log(rooms);
+                self.roomList = [];
+
+                for (var index in rooms) {
+                    //room = room.substring(1, room.length);
+                    if (index != '') {
+                        self.appendRoom(rooms[index]);
+                    }
+                }
+
+                /*$('#roomList div').click(function () {
+                    chatApp.processCommand('/join ' + $(this).text())
+                    $sendMessage.focus();
+                });*/
+            });
+
+            this.schedule(function () {
+                socket.emit(MSG.rooms);
+            }, 5, cc.REPEAT_FOREVER, 1);
         },
 
-        appendText:function(message){
+        appendRoom:function(room){
+            this.roomList.push(room);
+            var text = new ccui.Text(room, "Thonburi", 20);
+            text.color = cc.color(255, 255, 0);
+            text.anchorX = 0;
+            text.x = 0;
+            text.y = this.roomScrollView.getInnerContainerSize().height - (this.rowHeight+this.bottomPadding)*(this.roomList.length);
+            this.roomScrollView.addChild(text);
+
+            //var percent = (this.textCount-1)/this.row;
+            //cc.log(percent);
+            /*if(percent == 0 || percent > 0.5){
+                this.roomScrollView.jumpToPercentVertical((percent+0.01) * 100);
+            }*/
+        },
+
+        appendMessage:function(message){
             if(this.textCount >= this.row-1){
-                this.scrollView.removeAllChildren();
+                this.chatScrollView.removeAllChildren();
                 this.textCount = 0;
             }
 
@@ -172,13 +204,13 @@ define(['socketio', 'protocol', 'chat', 'ByteBuffer', 'Long', 'ProtoBuf'], funct
             text.color = cc.color(255, 255, 0);
             text.anchorX = 0;
             text.x = 0;
-            text.y = this.scrollView.getInnerContainerSize().height - (this.rowHeight+this.bottomPadding)*(this.textCount);
-            this.scrollView.addChild(text);
+            text.y = this.chatScrollView.getInnerContainerSize().height - (this.rowHeight+this.bottomPadding)*(this.textCount);
+            this.chatScrollView.addChild(text);
 
             var percent = (this.textCount-1)/this.row;
             //cc.log(percent);
             if(percent == 0 || percent > 0.5){
-                this.scrollView.jumpToPercentVertical((percent+0.01) * 100);
+                this.chatScrollView.jumpToPercentVertical((percent+0.01) * 100);
             }
         },
 
@@ -213,16 +245,16 @@ define(['socketio', 'protocol', 'chat', 'ByteBuffer', 'Long', 'ProtoBuf'], funct
             if (message.charAt(0) == '/') {
                 systemMessage = chatApp.processCommand(message);
                 if (systemMessage) {
-                    this.appendText(systemMessage);
+                    this.appendMessage(systemMessage);
                 }
             } else {
                 this.chatApp.sendMessage(this.room.getString(), message);
-                this.appendText(message);
+                this.appendMessage(message);
                 //$messages.scrollTop($messages.prop('scrollHeight'));
             }
 
             this.textField.setString('');
-            //this.scrollView.updateChildren();
+            //this.chatScrollView.updateChildren();
         }
 
     });
