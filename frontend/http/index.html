@@ -16,14 +16,18 @@
 				<div id="help">
 					Chat commands:
 					<ul>
-						<li>Change Name: <code>name [user name]</code></li>
-						<li>Join/Create Room: <code>join [room name]</code></li>
+						<li>Change Name: <code>/name [user name]</code></li>
+						<li>Join/Create Room: <code>/join [room name]</code></li>
 					</ul>
 				</div>
 			</form>
 		</div>
-		<script data-main="static/js/config" src="static/js/lib/require.js"></script>
+
+		<!-- 下面使用的RequireJs是由NodeJs启动服务时生成的，而不是写死的 -->
+		<script data-main="static/js/configByNodeJs" src="static/js/lib/require.js"></script>
+
 		<!--
+		<script data-main="static/js/config" src="static/js/lib/require.js"></script>
 		<script type="text/javascript" src="static/js/lib/socket.io/socket.io.js"></script>
 		<script type="text/javascript" src="static/js/lib/jquery-1.8.3.min.js"></script>
 		<script type="text/javascript" src="static/js/chat.js"></script>

@@ -30,3 +30,11 @@ message MessageProto{
 message RoomsProto{
 	repeated string rooms = 1;
 }
+
+message JoinCmdProto{
+	optional string newRoom = 1;
+}
+
+message ChangeNameCmdProto{
+	optional string userName = 1;
+}

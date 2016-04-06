@@ -1,5 +1,9 @@
-//var MSG = require('../../../../backend/nodejs/lib/chatServer.js').MSG;
-define(['protocol'], function(protocol){
+define(['protocol', 'ProtoBuf'], function(protocol, ProtoBuf){
+
+    var ChatProtocolBuffer = ProtoBuf.loadProtoFile("static/js/lib/protobuf/ChatProtoBuf.proto")
+        .build("ChatProtocolBuffer");
+    console.log('chat, '+ChatProtocolBuffer);
+
     var MSG = protocol.MSG;
 
     var Chat = function (socket) {
@@ -7,11 +11,14 @@ define(['protocol'], function(protocol){
     };
 
     Chat.prototype.sendMessage = function (room, text) {
-        var message = {
+        //var message = {
+        //    room: room,
+        //    text: text,
+        //};
+        this.socket.emit(MSG.message, new ChatProtocolBuffer.MessageProto({
             room: room,
-            text: text,
-        };
-        this.socket.emit(MSG.message, message);
+            text:text
+        }).toBuffer());
     };
 
     Chat.prototype.processCommand = function (command) {
@@ -22,12 +29,16 @@ define(['protocol'], function(protocol){
             case 'join':
                 words.shift();
                 var room = words.join(' ');
-                this.socket.emit(MSG.join, {newRoom: room,});
+                this.socket.emit(MSG.join, new ChatProtocolBuffer.JoinCmdProto({
+                    newRoom: room
+                }).toBuffer());
                 break;
             case 'name':
                 words.shift();
                 var userName = words.join(' ');
-                this.socket.emit(MSG.changeName, userName);
+                this.socket.emit(MSG.changeName, new ChatProtocolBuffer.ChangeNameCmdProto({
+                    userName:userName
+                }).toBuffer());
                 break;
             default:
                 message = 'Unknow Command:' + command;

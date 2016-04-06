@@ -157,6 +157,7 @@ define(['socketio', 'protocol', 'chat', 'ByteBuffer', 'Long', 'ProtoBuf'], funct
                 console.log(rooms);
                 rooms = ChatProtocolBuffer.RoomsProto.decode(rooms).rooms;
                 console.log(rooms);
+
                 self.roomList = [];
 
                 for (var index in rooms) {
@@ -243,7 +244,7 @@ define(['socketio', 'protocol', 'chat', 'ByteBuffer', 'Long', 'ProtoBuf'], funct
             var systemMessage;
 
             if (message.charAt(0) == '/') {
-                systemMessage = chatApp.processCommand(message);
+                systemMessage = this.chatApp.processCommand(message);
                 if (systemMessage) {
                     this.appendMessage(systemMessage);
                 }

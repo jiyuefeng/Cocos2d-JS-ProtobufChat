@@ -13,24 +13,6 @@ var existsRooms = {};
 var USER_NAME_PREFIX = 'Guest';
 var DEFAULT_ROOM = 'Lobby';
 
-/*var MSG = {
-    connection:'connection',
-    message:'message',
-    changeName:'changeName',
-    join:'join',
-    rooms:'rooms',
-    disconnect:'disconnect',
-};
-
-var RESULT = {
-    nameResult:'nameResult',
-    joinResult:'joinResult',
-}
-
-exports.MSG = MSG;
-exports.RESULT = RESULT;
- */
-
 exports.listen = function(server){
     io = socketio.listen(server);
     io.set('log level', 1);
@@ -158,11 +140,11 @@ function handleJoinOtherRoom(socket){
         socket.broadcast.to(preRoom).emit(MSG.message, {
             text:userNames[socket.id]+' changed room to ['+joinInfo.newRoom+']!'
         });
+
+        deleteFromExistsRooms(socket);
         socket.broadcast.to(preRoom).emit(MSG.message, {
             text:usersInRoomSummary(preRoom)
         });
-
-        deleteFromExistsRooms(socket);
 
         joinRoom(socket, joinInfo.newRoom);
     });

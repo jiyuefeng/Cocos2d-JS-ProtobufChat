@@ -1,7 +1,3 @@
-//var chatServer = require('../../../../backend/nodejs/lib/chatServer.js');
-//var MSG = chatServer.MSG;
-//var RESULT = chatServer.RESULT;
-
 define(['jquery', 'socketio', 'protocol', 'chat', 'ByteBuffer', 'Long', 'ProtoBuf'],
     function($, socketio, protocol, chat, ByteBuffer, Long, ProtoBuf) {
     console.log(ProtoBuf);
@@ -24,6 +20,7 @@ define(['jquery', 'socketio', 'protocol', 'chat', 'ByteBuffer', 'Long', 'ProtoBu
         console.log('jquery ready...');
 
         socket.on(RESULT.nameResult, function (result) {
+            result = ChatProtocolBuffer.NameResultProto.decode(result);
             var message;
             if (result.success) {
                 message = 'You are now known as [' + result.name + ']!';
@@ -34,25 +31,27 @@ define(['jquery', 'socketio', 'protocol', 'chat', 'ByteBuffer', 'Long', 'ProtoBu
         });
 
         socket.on(RESULT.joinResult, function (result) {
+            result = ChatProtocolBuffer.JoinResultProto.decode(result);
             $('#room').text(result.room);
             $messages.append(divSystemContentElement('Room changed!'));
         });
 
         socket.on(MSG.message, function (message) {
+            message = ChatProtocolBuffer.MessageProto.decode(message);
             $messages.append($('<div></div>').text(message.text));
         });
 
         socket.on(MSG.rooms, function (rooms) {
-            var roomsMsg = TestProto.decode(rooms);
-            console.log(roomsMsg);
-            console.log(roomsMsg.gold);
+            console.log(rooms);
+            rooms = ChatProtocolBuffer.RoomsProto.decode(rooms).rooms;
+            console.log(rooms);
 
             $roomList.empty();
 
             for (var room in rooms) {
                 //room = room.substring(1, room.length);
                 if (room != '') {
-                    $roomList.append(divEscapedContentElement(room));
+                    $roomList.append(divEscapedContentElement(rooms[room]));
                 }
             }
 

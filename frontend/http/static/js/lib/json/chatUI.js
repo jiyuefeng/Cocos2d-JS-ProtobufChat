@@ -1,7 +1,3 @@
-//var chatServer = require('../../../../backend/nodejs/lib/chatServer.js');
-//var MSG = chatServer.MSG;
-//var RESULT = chatServer.RESULT;
-
 define(['jquery', 'socketio', 'protocol', 'chat'], function($, socketio, protocol, chat) {
     var MSG = protocol.MSG;
     var RESULT = protocol.RESULT;

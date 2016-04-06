@@ -22,24 +22,6 @@ var existsRooms = {};
 var USER_NAME_PREFIX = 'Guest';
 var DEFAULT_ROOM = 'Lobby';
 
-/*var MSG = {
-    connection:'connection',
-    message:'message',
-    changeName:'changeName',
-    join:'join',
-    rooms:'rooms',
-    disconnect:'disconnect',
-};
-
-var RESULT = {
-    nameResult:'nameResult',
-    joinResult:'joinResult',
-}
-
-exports.MSG = MSG;
-exports.RESULT = RESULT;
- */
-
 exports.listen = function(server){
     io = socketio.listen(server);
     io.set('log level', 1);
@@ -62,7 +44,6 @@ exports.listen = function(server){
 }
 
 function assignGuestName(socket, guestNum, userNames, namesUsed){
-    console.log('assignGuestName...');
     var userName = USER_NAME_PREFIX+guestNum;
     userNames[socket.id] = userName;
     socket.emit(RESULT.nameResult, new ChatProtocolBuffer.NameResultProto({
@@ -135,12 +116,13 @@ function handleBroadcastMessage(socket, userNames){
 }
 
 function handleChangeUserName(socket, userNames, namesUsed){
-    socket.on(MSG.changeName, function(userName){
+    socket.on(MSG.changeName, function(changeNameInfo){
+        var userName = ChatProtocolBuffer.ChangeNameCmdProto.decode(changeNameInfo).userName;
         if(userName.indexOf(USER_NAME_PREFIX) == 0){
-            socket.emit(RESULT.nameResult, {
+            socket.emit(RESULT.nameResult, new ChatProtocolBuffer.NameResultProto({
                 success:false,
                 message:'Names cannot begin with '+USER_NAME_PREFIX+'!'
-            });
+            }).toBuffer());
         }else{
             if(namesUsed.indexOf(userName) == -1){
                 var preUserName = userNames[socket.id];
@@ -149,18 +131,18 @@ function handleChangeUserName(socket, userNames, namesUsed){
                 userNames[socket.id] = userName;
                 delete namesUsed[preUserNameIndex];
 
-                socket.emit(RESULT.nameResult, {
+                socket.emit(RESULT.nameResult, new ChatProtocolBuffer.NameResultProto({
                     success:true,
                     name:userName
-                });
-                socket.broadcast.to(currentRoom[socket.id]).emit(MSG.message, {
+                }).toBuffer());
+                socket.broadcast.to(currentRoom[socket.id]).emit(MSG.message, new ChatProtocolBuffer.MessageProto({
                     text:preUserName+' is now known as ['+userName+']!'
-                });
+                }).toBuffer());
             }else{
-                socket.emit(RESULT.nameResult, {
+                socket.emit(RESULT.nameResult, new ChatProtocolBuffer.NameResultProto({
                     success:false,
                     message:'That name is already in use!'
-                });
+                }).toBuffer());
             }
         }
     });
@@ -168,16 +150,17 @@ function handleChangeUserName(socket, userNames, namesUsed){
 
 function handleJoinOtherRoom(socket){
     socket.on(MSG.join, function(joinInfo){
+        joinInfo = ChatProtocolBuffer.JoinCmdProto.decode(joinInfo);
         var preRoom = currentRoom[socket.id];
         socket.leave(preRoom);
-        socket.broadcast.to(preRoom).emit(MSG.message, {
+        socket.broadcast.to(preRoom).emit(MSG.message, new ChatProtocolBuffer.MessageProto({
             text:userNames[socket.id]+' changed room to ['+joinInfo.newRoom+']!'
-        });
-        socket.broadcast.to(preRoom).emit(MSG.message, {
-            text:usersInRoomSummary(preRoom)
-        });
+        }).toBuffer());
 
         deleteFromExistsRooms(socket);
+        socket.broadcast.to(preRoom).emit(MSG.message, new ChatProtocolBuffer.MessageProto({
+            text:usersInRoomSummary(preRoom)
+        }).toBuffer());
 
         joinRoom(socket, joinInfo.newRoom);
     });
@@ -186,16 +169,6 @@ function handleJoinOtherRoom(socket){
 function handleQueryRooms(socket){
     socket.on(MSG.rooms, function(){
         //socket.emit(MSG.rooms, existsRooms);
-
-        /*var testProtoData = new TestProto({
-            id:10004,
-            name:"testProtoName测试12",
-            rank:3,
-            gold:345345,
-            exp:158,
-            diamond:34534
-        });
-        socket.emit(MSG.rooms, testProtoData.toBuffer());*/
 
         var rooms = [];
         for(room in existsRooms){

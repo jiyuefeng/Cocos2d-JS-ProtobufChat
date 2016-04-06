@@ -6,8 +6,22 @@ var mime = require('mime');
 //var chatType = 'json';
 var chatType = 'protobuf';
 
-//var frontend = 'http';
-var frontend = 'cocos2d-js';
+var frontend = 'http';
+//var frontend = 'cocos2d-js';
+
+String.prototype.replaceAll = function(s1, s2) {
+    var demo = this;
+    while (demo.indexOf(s1) != - 1){
+        demo = demo.replace(s1, s2);
+    }
+    return demo;
+};
+
+var frontendConfig = fs.readFileSync('./lib/frontend/config.js').toString();
+//console.log(frontendConfig);
+frontendConfig = frontendConfig.replaceAll('[chatType]', chatType);
+//console.log(frontendConfig);
+fs.writeFileSync('../../frontend/http/static/js/configByNodeJs.js', frontendConfig);
 
 var chatServer = require('./lib/'+chatType+'/chatServer.js');
 
