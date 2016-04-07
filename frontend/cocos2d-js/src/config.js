@@ -5,8 +5,8 @@ require.config({
         ByteBuffer:'src/lib/protobuf/ByteBufferAB',
         Long:'src/lib/protobuf/Long',
         ProtoBuf:'src/lib/protobuf/ProtoBuf',
-        chat:'src/chat',
-        chatUI:'src/chatUIProto',
+        chat:'src/lib/[chatType]/chat',
+        chatUI:'src/lib/[chatType]/chatUI',
         //app:'src/app',
     }
 });

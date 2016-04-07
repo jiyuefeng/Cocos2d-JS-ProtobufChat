@@ -44,7 +44,7 @@ define(['protocol', 'ProtoBuf'], function(protocol, ProtoBuf){
                 message = 'Unknow Command:' + command;
                 break;
         }
-    }
+    };
 
     return {
       Chat:Chat

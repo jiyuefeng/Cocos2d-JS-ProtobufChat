@@ -4,3 +4,4 @@
 /frontend/*/frameworks/
 
 /frontend/*/*/*/configByNodeJs.js
+/frontend/*/*/configByNodeJs.js

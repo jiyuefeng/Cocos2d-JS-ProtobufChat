@@ -3,11 +3,13 @@ var fs = require('fs');
 var path = require('path');
 var mime = require('mime');
 
-//var chatType = 'json';
-var chatType = 'protobuf';
+var config = JSON.parse(fs.readFileSync('./config.json'));
+console.log(config);
 
-var frontend = 'http';
-//var frontend = 'cocos2d-js';
+var forntendTypePath = {
+    'http':'http/static/js',
+    'cocos2d-js':'cocos2d-js/src'
+};
 
 String.prototype.replaceAll = function(s1, s2) {
     var demo = this;
@@ -17,13 +19,13 @@ String.prototype.replaceAll = function(s1, s2) {
     return demo;
 };
 
-var frontendConfig = fs.readFileSync('./lib/frontend/config.js').toString();
+var frontendConfig = fs.readFileSync('../../frontend/'+forntendTypePath[config.frontendType]+'/config.js').toString();
 //console.log(frontendConfig);
-frontendConfig = frontendConfig.replaceAll('[chatType]', chatType);
+frontendConfig = frontendConfig.replaceAll('[chatType]', config.chatType);
 //console.log(frontendConfig);
-fs.writeFileSync('../../frontend/http/static/js/configByNodeJs.js', frontendConfig);
+fs.writeFileSync('../../frontend/'+forntendTypePath[config.frontendType]+'/configByNodeJs.js', frontendConfig);
 
-var chatServer = require('./lib/'+chatType+'/chatServer.js');
+var chatServer = require('./lib/'+config.chatType+'/chatServer.js');
 
 var cache = {};
 var port = 3000;
@@ -36,7 +38,7 @@ var server = http.createServer(function(request, response){
         filePath = request.url;
     }
 
-    var absPath = '../../frontend/'+frontend+'/'+filePath;
+    var absPath = '../../frontend/'+config.frontendType+'/'+filePath;
     serveStatic(response, cache, absPath);
 });
 

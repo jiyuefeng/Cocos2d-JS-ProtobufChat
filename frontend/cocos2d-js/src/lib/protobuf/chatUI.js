@@ -159,6 +159,7 @@ define(['socketio', 'protocol', 'chat', 'ByteBuffer', 'Long', 'ProtoBuf'], funct
                 console.log(rooms);
 
                 self.roomList = [];
+                self.roomScrollView.removeAllChildren();
 
                 for (var index in rooms) {
                     //room = room.substring(1, room.length);

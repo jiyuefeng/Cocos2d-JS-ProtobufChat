@@ -14,6 +14,6 @@
     "jsList" : [
         "src/resource.js",
         "src/lib/require.js",
-        "src/config.js"
+        "src/configByNodeJs.js"
     ]
 }

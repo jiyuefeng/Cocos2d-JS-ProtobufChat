@@ -74,7 +74,7 @@ function usersInRoomSummary(room){
     //var usersInRoom = io.sockets.clients(room);
     //var usersInRoom = io.sockets.adapter.rooms[room];
     var usersInRoom = existsRooms[room];
-    if(usersInRoom.length > 0){
+    if(usersInRoom && usersInRoom.length > 0){
         var usersInRoomSummary = 'Users currently in '+room+': ';
         var index = 0;
         for(var key in usersInRoom){

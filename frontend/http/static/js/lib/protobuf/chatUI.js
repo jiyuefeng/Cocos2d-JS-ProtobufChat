@@ -56,7 +56,13 @@ define(['jquery', 'socketio', 'protocol', 'chat', 'ByteBuffer', 'Long', 'ProtoBu
             }
 
             $('#roomList div').click(function () {
-                chatApp.processCommand('/join ' + $(this).text())
+                var currentRoom = $('#room').text();
+                var changeRoom = $(this).text();
+                if(currentRoom == changeRoom){
+                    //console.log('In same room:'+currentRoom);
+                    return;
+                }
+                chatApp.processCommand('/join ' + changeRoom);
                 $sendMessage.focus();
             });
         });
