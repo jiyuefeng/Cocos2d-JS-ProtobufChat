@@ -1,4 +1,4 @@
 {
-  "frontendType" : "cocos2d-js",
-  "chatType" : "protobuf"
+  "frontendType" : "http",
+  "chatType" : "json"
 }
