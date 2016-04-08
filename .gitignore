@@ -3,5 +3,7 @@
 /node_modules/
 /frontend/*/frameworks/
 
-/frontend/*/*/*/configByNodeJs.js
-/frontend/*/*/configByNodeJs.js
+/frontend/*/*/*/requireJsConfig.js
+/frontend/*/*/*/chatConfig.json
+/frontend/*/*/requireJsConfig.js
+/frontend/*/*/chatConfig.json

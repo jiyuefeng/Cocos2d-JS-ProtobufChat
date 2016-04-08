@@ -3,13 +3,15 @@ var fs = require('fs');
 var path = require('path');
 var mime = require('mime');
 
-var config = JSON.parse(fs.readFileSync('./config.json'));
-console.log(config);
-
 var forntendTypePath = {
     'http':'http/static/js',
     'cocos2d-js':'cocos2d-js/src'
 };
+
+var configFile = fs.readFileSync('../../chatConfig.json');
+var config = JSON.parse(configFile);
+console.log(config);
+fs.writeFileSync('../../frontend/'+forntendTypePath[config.frontendType]+'/chatConfig.json', configFile);
 
 String.prototype.replaceAll = function(s1, s2) {
     var demo = this;
@@ -23,7 +25,7 @@ var frontendConfig = fs.readFileSync('../../frontend/'+forntendTypePath[config.f
 //console.log(frontendConfig);
 frontendConfig = frontendConfig.replaceAll('[chatType]', config.chatType);
 //console.log(frontendConfig);
-fs.writeFileSync('../../frontend/'+forntendTypePath[config.frontendType]+'/configByNodeJs.js', frontendConfig);
+fs.writeFileSync('../../frontend/'+forntendTypePath[config.frontendType]+'/requireJsConfig.js', frontendConfig);
 
 var chatServer = require('./lib/'+config.chatType+'/chatServer.js');
 

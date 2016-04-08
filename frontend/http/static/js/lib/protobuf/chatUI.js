@@ -1,10 +1,10 @@
-define(['jquery', 'socketio', 'protocol', 'chat', 'ByteBuffer', 'Long', 'ProtoBuf'],
-    function($, socketio, protocol, chat, ByteBuffer, Long, ProtoBuf) {
-    console.log(ProtoBuf);
+define(['jquery', 'socketio', 'protocol', 'chat', 'ProtoBuf'], function($, socketio, protocol, chat, ProtoBuf) {
+
+    //console.log(ProtoBuf);
     var ChatProtocolBuffer = ProtoBuf.loadProtoFile("static/js/lib/protobuf/ChatProtoBuf.proto")
             .build("ChatProtocolBuffer"),
         TestProto = ChatProtocolBuffer.TestProto;
-    console.log(TestProto);
+    //console.log(TestProto);
 
     var MSG = protocol.MSG;
     var RESULT = protocol.RESULT;
@@ -13,6 +13,12 @@ define(['jquery', 'socketio', 'protocol', 'chat', 'ByteBuffer', 'Long', 'ProtoBu
     console.log(socket);
 
     $(document).ready(function () {
+        ProtoBuf.Util.fetch('static/js/chatConfig.json', function(data){
+            data = JSON.parse(data);
+            console.log(data);
+            $('#chatType').text('frontendType: '+data.frontendType+', chatType: '+data.chatType).css("color","red");
+        });
+
         var $messages = $('#messages');
         var $roomList = $('#roomList');
         var $sendMessage = $('#sendMessage');

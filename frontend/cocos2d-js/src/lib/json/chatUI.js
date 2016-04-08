@@ -1,4 +1,4 @@
-define(['socketio', 'protocol', 'chat'], function(socketio, protocol, chat){
+define(['socketio', 'protocol', 'chat', 'ProtoBuf'], function(socketio, protocol, chat, ProtoBuf){
 
     var MSG = protocol.MSG;
     var RESULT = protocol.RESULT;
@@ -20,6 +20,7 @@ define(['socketio', 'protocol', 'chat'], function(socketio, protocol, chat){
 
         chatApp:null,
 
+        config:null,
         room:null,
 
         textCount:0,
@@ -35,20 +36,47 @@ define(['socketio', 'protocol', 'chat'], function(socketio, protocol, chat){
 
         ctor:function () {
             this._super();
+            var self = this;
 
             var size = cc.winSize;
 
-            var room = this.room = new ccui.Text("--- Room ---", "Marker Felt", 30);
-            room.x = size.width/2;
-            room.y = size.height - room.height;
-            this.addChild(room);
+            var header = new ccui.Layout();
+            header.setContentSize(cc.size(650, 150));
+            header.setBackGroundColorType(ccui.Layout.BG_COLOR_SOLID);
+            header.setBackGroundColor(cc.color(18, 128, 18));
+            var headerRect = header.getContentSize();
+            header.x = size.width/2 - headerRect.width/2;
+            header.y = size.height - headerRect.height;
+            this.addChild(header);
+
+            var title = new ccui.Text("Cocos2d-JS-ProtobufChat", "Marker Felt", 30);
+            title.anchorX = 0;
+            title.y = 3.5*title.height;
+            header.addChild(title);
+
+            var config = this.config = new ccui.Text("--- Config ---", "Marker Felt", 28);
+            config.anchorX = 0;
+            config.y = 2.4*config.height;
+            header.addChild(config);
+
+            ProtoBuf.Util.fetch('src/chatConfig.json', function(data){
+                data = JSON.parse(data);
+                console.log(data);
+                self.config.setString('frontendType: '+data.frontendType+', chatType: '+data.chatType);
+                self.config.setColor(cc.color(0, 0, 0));
+            });
+
+            var room = this.room = new ccui.Text("--- Room ---", "Marker Felt", 25);
+            room.anchorX = 0;
+            room.y = room.height;
+            header.addChild(room);
 
             // Create the layout
             var layout = new ccui.Layout();
             layout.setContentSize(cc.size(650, 400));
             var layoutRect = layout.getContentSize();
             layout.x = size.width/2 - layoutRect.width/2;
-            layout.y = size.height/2 - layoutRect.height/2 + 50;
+            layout.y = size.height/2 - layoutRect.height/2 - 30;
             this.addChild(layout);
 
             var chatPanel = new ccui.Layout();
@@ -80,7 +108,7 @@ define(['socketio', 'protocol', 'chat'], function(socketio, protocol, chat){
             var roomPanel = new ccui.Layout();
             roomPanel.setBackGroundColorType(chatPanel.getBackGroundColorType());
             roomPanel.setBackGroundColor(chatPanel.getBackGroundColor());
-            roomPanel.setContentSize(cc.size(100, chatPanel.getContentSize().height));
+            roomPanel.setContentSize(cc.size(118, chatPanel.getContentSize().height));
             var layoutRect = chatPanel.getContentSize();
             roomPanel.x = chatPanel.x + chatPanel.width + 20;
             roomPanel.y = chatPanel.y;
@@ -108,7 +136,7 @@ define(['socketio', 'protocol', 'chat'], function(socketio, protocol, chat){
             // Create the textfield
             var textField = this.textField = new ccui.TextField("PlaceHolder", "Marker Felt", 30);
             textField.x = size.width / 2;
-            textField.y = 100;
+            textField.y = 40;
             textField.addEventListener(this.textFieldEvent, this);
             this.addChild(textField, 1);
 
@@ -148,6 +176,7 @@ define(['socketio', 'protocol', 'chat'], function(socketio, protocol, chat){
                 console.log(rooms);
 
                 self.roomList = [];
+                self.roomScrollView.removeAllChildren();
 
                 for (var room in rooms) {
                     //room = room.substring(1, room.length);
