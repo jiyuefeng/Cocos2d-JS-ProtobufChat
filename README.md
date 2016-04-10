@@ -5,10 +5,12 @@
 
 frontend(Cocos2d-JS/Html) communicate with backend(NodeJS/Java) by Http/SocketIO/Protobuf/Json protocol to implements Chat
 
-## Example
-Run **node server.js**
-
-**Note:** if you want to run **cocos2d-js** frontend, please ensure copy cocos2d-js **frameworks** into the cocos2d-js directory
+## Instructions
+1. Set up dependencies: `npm install`
+2. Copy the cocos2d-js `frameworks` to frontend/cocos2d-js directory
+3. Change Directory to backend/nodejs `cd backend/nodejs`
+4. Run: `node server.js`
+5. Open `http://localhost:3000` in a recent browser
 
 ## Config
 you can modify **chatConfig.json** to choose **What You Want To Run** in  below:
@@ -48,6 +50,10 @@ you can use **/join [room name]** command to create/join another room
 frontend is **http(actually html is a better name)** And chat serialization protocol is **json**
 
 ![11](images/11.png)
+
+![13](images/13.png)
+
+![14](images/14.png)
 
 ![12](images/12.png)
 

@@ -2,6 +2,7 @@ var http = require('http');
 var fs = require('fs');
 var path = require('path');
 var mime = require('mime');
+var open = require("open");
 
 var forntendTypePath = {
     'http':'http/static/js',
@@ -46,6 +47,7 @@ var server = http.createServer(function(request, response){
 
 server.listen(port, function(){
     console.log('Server listening on porn '+port);
+    open("http://localhost:"+port);
 });
 
 chatServer.listen(server);
