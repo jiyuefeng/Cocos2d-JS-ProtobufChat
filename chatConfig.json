@@ -1,4 +1,4 @@
 {
   "frontendType" : "http",
-  "chatType" : "json"
+  "chatType" : "protobuf"
 }
