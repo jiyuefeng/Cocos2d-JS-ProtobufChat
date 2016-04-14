@@ -1,0 +1,40 @@
+package ChatProtocolBuffer;
+
+option java_package = "com.why.game.chat";
+option java_outer_classname = "ChatProtocolBuffer";
+
+message TestProto{
+	optional int64 id = 1;
+	optional string name = 2;
+	optional int32 rank = 3;
+	optional int32 gold = 4;
+
+	optional int32 exp = 5;
+	optional int32 diamond = 6;
+}
+
+message NameResultProto{
+	optional bool success = 1;
+	optional string name = 2;
+}
+
+message JoinResultProto{
+	optional string room = 1;
+}
+
+message MessageProto{
+	optional string text = 1;
+	optional string room = 2;
+}
+
+message RoomsProto{
+	repeated string rooms = 1;
+}
+
+message JoinCmdProto{
+	optional string newRoom = 1;
+}
+
+message ChangeNameCmdProto{
+	optional string userName = 1;
+}

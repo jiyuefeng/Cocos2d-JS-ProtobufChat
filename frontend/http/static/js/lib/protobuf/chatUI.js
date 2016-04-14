@@ -9,7 +9,8 @@ define(['jquery', 'socketio', 'protocol', 'chat', 'ProtoBuf'], function($, socke
     var MSG = protocol.MSG;
     var RESULT = protocol.RESULT;
 
-    var socket = socketio.connect('localhost:3000');
+	var socket = socketio.connect('localhost:3000'); //nodejs
+    var socket = socketio.connect('localhost:3001'); //java
     console.log(socket);
 
     $(document).ready(function () {
