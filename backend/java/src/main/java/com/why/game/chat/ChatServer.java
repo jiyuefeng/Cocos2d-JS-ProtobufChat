@@ -9,6 +9,7 @@ import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import com.corundumstudio.socketio.AckRequest;
+import com.corundumstudio.socketio.BroadcastOperations;
 import com.corundumstudio.socketio.Configuration;
 import com.corundumstudio.socketio.SocketIOClient;
 import com.corundumstudio.socketio.SocketIONamespace;
@@ -16,6 +17,7 @@ import com.corundumstudio.socketio.SocketIOServer;
 import com.corundumstudio.socketio.listener.ConnectListener;
 import com.corundumstudio.socketio.listener.DataListener;
 import com.corundumstudio.socketio.listener.DisconnectListener;
+import com.corundumstudio.socketio.namespace.Namespace;
 import com.why.game.chat.ChatProtocolBuffer.MessageProto;
 
 public class ChatServer {
@@ -43,9 +45,6 @@ public class ChatServer {
         		System.out.println(client.getSessionId()+" connecting...");
         		assignGuestName(client);
                 joinRoom(client, DEFAULT_ROOM);
-
-                handleBroadcastMessage(client);
-                handleDisconnect(client);
         	}
         	
 			private int assignGuestName(SocketIOClient client) {
@@ -56,16 +55,20 @@ public class ChatServer {
         		return guestNum.incrementAndGet();
         	}
 
-			private void joinRoom(SocketIOClient client, String roomName) {
-				server.addNamespace(roomName);
-				client.joinRoom(roomName);
-				currentRoom.put(client.getSessionId(), roomName);
+			private void joinRoom(SocketIOClient client, String room) {
+				Namespace namespace = (Namespace)server.addNamespace(room);
+				namespace.onConnect(client);
+				namespace.addClient(client);
+				//namespace.join(room, client.getSessionId());
+				//client.joinRoom(roomName);
+				currentRoom.put(client.getSessionId(), room);
+				
 				client.sendEvent(Protocol.RESULT.joinResult.name(), 
-						ChatProtoEncoder.joinResultProto(roomName).toByteArray());
-				server.getRoomOperations(roomName).sendEvent(Protocol.MSG.message.name(), 
-						ChatProtoEncoder.messageProto(userNames.get(client.getSessionId())+" has joined "+roomName+'!').toByteArray());
+						ChatProtoEncoder.joinResultProto(room).toByteArray());
+				server.getRoomOperations(room).sendEvent(Protocol.MSG.message.name(), 
+						ChatProtoEncoder.messageProto(userNames.get(client.getSessionId())+" has joined "+room+'!').toByteArray());
 				client.sendEvent(Protocol.MSG.message.name(), 
-						ChatProtoEncoder.messageProto(usersInRoomSummary(roomName)).toByteArray());
+						ChatProtoEncoder.messageProto(usersInRoomSummary(room)).toByteArray());
 			}
 
 			private String usersInRoomSummary(String roomName) {
@@ -80,31 +83,10 @@ public class ChatServer {
 				for(SocketIOClient client:room.getAllClients()){
 					sb.append(userNames.get(client.getSessionId())).append(",");
 				}
-				//sb.deleteCharAt(sb.length()-1).append("!");
+				sb.deleteCharAt(sb.length()-1).append("!");
 				return sb.toString();
 			}
 			
-			private void handleBroadcastMessage(SocketIOClient client) {
-				server.addEventListener(Protocol.MSG.message.name(), byte[].class, new DataListener<byte[]>() {
-		            @Override
-		            public void onData(SocketIOClient client, byte[] data, AckRequest ackRequest) {
-		            	MessageProto message = ChatProtoDecoder.message(data);
-		                server.getRoomOperations(message.getRoom()).sendEvent(Protocol.MSG.message.name(), 
-		                		ChatProtoEncoder.messageProto(userNames.get(client.getSessionId())+": "+message.getText()).toByteArray());
-		            }
-		        });
-			}
-			
-			private void  handleDisconnect(SocketIOClient client){
-				server.addDisconnectListener(new DisconnectListener(){
-					@Override
-					public void onDisconnect(SocketIOClient client) {
-						System.out.println(client.getSessionId()+" connecting...");
-						client.leaveRoom(currentRoom.get(client.getSessionId()));
-					}
-				});
-			}
-
         });
         
 //        server.addEventListener("msg", byte[].class, new DataListener<byte[]>() {
@@ -114,16 +96,62 @@ public class ChatServer {
 //                client.sendEvent("msg", data);
 //            }
 //        });
+        
+        server.addEventListener(Protocol.MSG.message.name(), byte[].class, new DataListener<byte[]>() {
+            @Override
+            public void onData(SocketIOClient client, byte[] data, AckRequest ackRequest) {
+            	MessageProto message = ChatProtoDecoder.message(data);
+            	
+            	String roomName = message.getRoom();
+            	System.out.println("onData roomName="+roomName);
+            	SocketIONamespace room = server.getNamespace(roomName);
+            	BroadcastOperations broadcastOperations = server.getRoomOperations(roomName);
+            	System.out.println(broadcastOperations.getClients().size());
+            	
+//            	broadcastOperations.sendEvent(Protocol.MSG.message.name(), 
+//                		ChatProtoEncoder.messageProto(userNames.get(client.getSessionId())+": "+message.getText()).toByteArray());
+            	
+            	
+//            	room.getBroadcastOperations().sendEvent(Protocol.MSG.message.name(), 
+//                		ChatProtoEncoder.messageProto(userNames.get(client.getSessionId())+": "+message.getText()).toByteArray());
+            	
+            	server.getRoomOperations(roomName).sendEvent(Protocol.MSG.message.name(), 
+						ChatProtoEncoder.messageProto(userNames.get(client.getSessionId())+" has joined "+roomName+'!').toByteArray());
+            	
+            	//为什么使用上面的无论是全局广播还是房间广播的操作都不行呢？
+            	//只能使用如下for一个个去发送吗？
+//            	for(SocketIOClient socketClient:broadcastOperations.getClients()){
+//            		System.out.println("SessionId: "+socketClient.getSessionId());
+//            		if(socketClient.getSessionId() == client.getSessionId()){
+//            			continue;
+//            		}
+//            		socketClient.sendEvent(Protocol.MSG.message.name(), 
+//                    		ChatProtoEncoder.messageProto(userNames.get(client.getSessionId())+": "+message.getText()).toByteArray());
+//            	}
+            }
+        });
+        
+        server.addDisconnectListener(new DisconnectListener(){
+			@Override
+			public void onDisconnect(SocketIOClient client) {
+				System.out.println(client.getSessionId()+" disconnecting...");
+				String roomName = currentRoom.get(client.getSessionId());
+				Namespace room = (Namespace)server.getNamespace(roomName);
+				room.onDisconnect(client);
+				//room.leaveRoom(roomName, client.getSessionId());
+				//client.leaveRoom();
+			}
+		});
 
         server.start();
 
-        try {
-			Thread.sleep(Integer.MAX_VALUE);
-		} catch (InterruptedException e) {
-			e.printStackTrace();
-		}
-
-        server.stop();
+//        try {
+//			Thread.sleep(Integer.MAX_VALUE);
+//		} catch (InterruptedException e) {
+//			e.printStackTrace();
+//		}
+//
+//        server.stop();
 	}
 	
     public static void main(String[] args) throws InterruptedException, UnsupportedEncodingException {

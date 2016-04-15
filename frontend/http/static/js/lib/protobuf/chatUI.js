@@ -9,7 +9,7 @@ define(['jquery', 'socketio', 'protocol', 'chat', 'ProtoBuf'], function($, socke
     var MSG = protocol.MSG;
     var RESULT = protocol.RESULT;
 
-	var socket = socketio.connect('localhost:3000'); //nodejs
+	//var socket = socketio.connect('localhost:3000'); //nodejs
     var socket = socketio.connect('localhost:3001'); //java
     console.log(socket);
 
@@ -44,7 +44,9 @@ define(['jquery', 'socketio', 'protocol', 'chat', 'ProtoBuf'], function($, socke
         });
 
         socket.on(MSG.message, function (message) {
+            console.log(message);
             message = ChatProtocolBuffer.MessageProto.decode(message);
+            console.log(message);
             $messages.append($('<div></div>').text(message.text));
         });
 
@@ -97,6 +99,7 @@ define(['jquery', 'socketio', 'protocol', 'chat', 'ProtoBuf'], function($, socke
     function processUserInput(chatApp, socket) {
         var $messages = $('#messages');
         var $sendMessage = $('#sendMessage');
+        var $room = $('#room');
         var message = $sendMessage.val();
         var systemMessage;
 
@@ -106,7 +109,9 @@ define(['jquery', 'socketio', 'protocol', 'chat', 'ProtoBuf'], function($, socke
                 $messages.append(divSystemContentElement(systemMessage));
             }
         } else {
-            chatApp.sendMessage($('#room').text(), message);
+            var room = $room.text();
+            console.log(room);
+            chatApp.sendMessage(room, message);
             $messages.append(divEscapedContentElement(message));
             $messages.scrollTop($messages.prop('scrollHeight'));
         }
