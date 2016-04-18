@@ -115,19 +115,16 @@ public class ChatServer {
 //            	room.getBroadcastOperations().sendEvent(Protocol.MSG.message.name(), 
 //                		ChatProtoEncoder.messageProto(userNames.get(client.getSessionId())+": "+message.getText()).toByteArray());
             	
-            	server.getRoomOperations(roomName).sendEvent(Protocol.MSG.message.name(), 
-						ChatProtoEncoder.messageProto(userNames.get(client.getSessionId())+" has joined "+roomName+'!').toByteArray());
-            	
             	//为什么使用上面的无论是全局广播还是房间广播的操作都不行呢？
             	//只能使用如下for一个个去发送吗？
-//            	for(SocketIOClient socketClient:broadcastOperations.getClients()){
-//            		System.out.println("SessionId: "+socketClient.getSessionId());
-//            		if(socketClient.getSessionId() == client.getSessionId()){
-//            			continue;
-//            		}
-//            		socketClient.sendEvent(Protocol.MSG.message.name(), 
-//                    		ChatProtoEncoder.messageProto(userNames.get(client.getSessionId())+": "+message.getText()).toByteArray());
-//            	}
+            	for(SocketIOClient socketClient:room.getAllClients()){
+            		System.out.println("SessionId: "+socketClient.getSessionId());
+            		if(socketClient.getSessionId() == client.getSessionId()){
+            			continue;
+            		}
+            		socketClient.sendEvent(Protocol.MSG.message.name(), 
+                    		ChatProtoEncoder.messageProto(userNames.get(client.getSessionId())+": "+message.getText()).toByteArray());
+            	}
             }
         });
         
