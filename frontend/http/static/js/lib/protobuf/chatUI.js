@@ -48,6 +48,7 @@ define(['jquery', 'socketio', 'protocol', 'chat', 'ProtoBuf'], function($, socke
             message = ChatProtocolBuffer.MessageProto.decode(message);
             console.log(message);
             $messages.append($('<div></div>').text(message.text));
+            $messages.scrollTop($messages.prop('scrollHeight'));
         });
 
         socket.on(MSG.rooms, function (rooms) {
