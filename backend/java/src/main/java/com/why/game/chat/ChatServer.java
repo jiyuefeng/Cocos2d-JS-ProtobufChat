@@ -9,6 +9,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import com.corundumstudio.socketio.AckRequest;
@@ -28,11 +30,13 @@ public class ChatServer implements ConnectListener, DisconnectListener{
 	private static final String USER_NAME_PREFIX = "Guest";
 	private static final String DEFAULT_ROOM = "Lobby";
 	
-	private final AtomicInteger guestNum = new AtomicInteger(0);
-	private final Map<UUID, String> userNames = new HashMap<UUID, String>();
-	private final Set<String> namesUsed = new HashSet<String>();
+	private static final Executor executor = Executors.newCachedThreadPool();
 	
-	private final Map<UUID, String> currentRoom = new HashMap<UUID, String>();
+	private final AtomicInteger guestNum = new AtomicInteger(0);
+	private final Map<UUID, String> userNameMap = new HashMap<UUID, String>();
+	private final Set<String> usedNames = new HashSet<String>();
+	
+	private final Map<UUID, String> userRoomMap = new HashMap<UUID, String>();
 	
 	private final SocketIOServer server;
 	
@@ -48,6 +52,7 @@ public class ChatServer implements ConnectListener, DisconnectListener{
 	public void start(){
         server.addConnectListener(this);
         server.addDisconnectListener(this);
+        
         handleBroadcastMessage();
         handleChangeUserName();
         handleJoinOtherRoom();
@@ -73,26 +78,29 @@ public class ChatServer implements ConnectListener, DisconnectListener{
 	
 	private int assignGuestName(SocketIOClient client) {
 		String userName = USER_NAME_PREFIX+guestNum;
-		userNames.put(client.getSessionId(), userName);
+		userNameMap.put(client.getSessionId(), userName);
 		client.sendEvent(Protocol.RESULT.nameResult.name(), ChatProtoEncoder.nameResultProto(userName).toByteArray());
-		namesUsed.add(userName);
+		usedNames.add(userName);
 		return guestNum.incrementAndGet();
 	}
 
-	private void joinRoom(SocketIOClient client, String room) {
-		Namespace namespace = (Namespace)server.addNamespace(room);
-		namespace.onConnect(client);
-		namespace.addClient(client);
+	private void joinRoom(SocketIOClient client, String roomName) {
+		Namespace room = (Namespace)server.addNamespace(roomName);
+		room.onConnect(client);
+		room.addClient(client);
 		//namespace.join(room, client.getSessionId());
 		//client.joinRoom(roomName);
-		currentRoom.put(client.getSessionId(), room);
+		UUID sessionId = client.getSessionId();
+		userRoomMap.put(sessionId, roomName);
 		
 		client.sendEvent(Protocol.RESULT.joinResult.name(), 
-				ChatProtoEncoder.joinResultProto(room).toByteArray());
-		server.getRoomOperations(room).sendEvent(Protocol.MSG.message.name(), 
-				ChatProtoEncoder.messageProto(userNames.get(client.getSessionId())+" has joined "+room+'!').toByteArray());
+				ChatProtoEncoder.joinResultProto(roomName).toByteArray());
 		client.sendEvent(Protocol.MSG.message.name(), 
-				ChatProtoEncoder.messageProto(usersInRoomSummary(room)).toByteArray());
+				ChatProtoEncoder.messageProto(usersInRoomSummary(roomName)).toByteArray());
+		
+//		server.getRoomOperations(roomName).sendEvent(Protocol.MSG.message.name(), 
+//				ChatProtoEncoder.messageProto(userNameMap.get(sessionId)+" has joined "+roomName+'!').toByteArray());
+		systemBroadcast(client, room, userNameMap.get(sessionId)+" has joined "+roomName+'!');
 	}
 
 	private String usersInRoomSummary(String roomName) {
@@ -105,7 +113,7 @@ public class ChatServer implements ConnectListener, DisconnectListener{
 		}
 		//System.out.println("roomName client size:"+room.getAllClients().size());
 		for(SocketIOClient client:room.getAllClients()){
-			sb.append(userNames.get(client.getSessionId())).append(",");
+			sb.append(userNameMap.get(client.getSessionId())).append(",");
 		}
 		sb.deleteCharAt(sb.length()-1).append("!");
 		return sb.toString();
@@ -125,13 +133,63 @@ public class ChatServer implements ConnectListener, DisconnectListener{
             	//System.out.println("room size="+room.getAllClients().size());
             	//System.out.println("room size="+room.getAllClients().size());
             	
-            	broadcast(client, room, message.getText());
+            	clientBroadcast(client, room, message.getText());
             }
         });
 	}
 	
-	private void broadcast(SocketIOClient client, SocketIONamespace room, String msg){
-		//    	broadcastOperations.sendEvent(Protocol.MSG.message.name(), 
+	private void handleChangeUserName(){
+		server.addEventListener(Protocol.MSG.changeName.name(), byte[].class, new DataListener<byte[]>() {
+			@Override
+			public void onData(SocketIOClient client, byte[] data, AckRequest ackSender) {
+				String userName = ChatProtoDecoder.changeNameCmd(data).getUserName();
+				if(userName.indexOf(USER_NAME_PREFIX) == 0){
+					client.sendEvent(Protocol.RESULT.nameResult.name(), 
+							ChatProtoEncoder.failNameResultProto("Names cannot begin with "+USER_NAME_PREFIX).toByteArray());
+				}else{
+					if(usedNames.contains(userName)){
+						client.sendEvent(Protocol.RESULT.nameResult.name(), 
+								ChatProtoEncoder.failNameResultProto("That name is already in use!").toByteArray());
+					}else{
+						UUID sessionId = client.getSessionId();
+						String preUserName = userNameMap.get(sessionId);
+						usedNames.add(userName);
+						userNameMap.put(sessionId, userName);
+						usedNames.remove(preUserName);
+						
+						client.sendEvent(Protocol.RESULT.nameResult.name(), 
+								ChatProtoEncoder.nameResultProto(userName).toByteArray());
+						
+						SocketIONamespace room = server.getNamespace(userRoomMap.get(sessionId));
+						systemBroadcast(client, room, preUserName+" is now known as ["+userName+"]!");
+					}
+				}
+			}
+		});
+	}
+	
+	private void handleJoinOtherRoom(){
+		server.addEventListener(Protocol.MSG.join.name(), byte[].class, new DataListener<byte[]>() {
+			@Override
+			public void onData(SocketIOClient client, byte[] data, AckRequest ackSender) {
+				String newRoom = ChatProtoDecoder.joinCmd(data).getNewRoom();
+				Namespace room = leaveRoom(client);
+				systemBroadcast(client, room, userNameMap.get(client.getSessionId())+" changed room to ["+newRoom+"]!");
+				joinRoom(client, newRoom);
+			}
+		});
+	}
+	
+	private void clientBroadcast(SocketIOClient client, SocketIONamespace room, String msg){
+		broadcast(false, client, room, msg);
+	}
+	
+	private void systemBroadcast(SocketIOClient client, SocketIONamespace room, String msg){
+		broadcast(true, client, room, msg);
+	}
+	
+	private void broadcast(boolean isSystem, SocketIOClient client, SocketIONamespace room, String msg){
+		//broadcastOperations.sendEvent(Protocol.MSG.message.name(), 
 		//		ChatProtoEncoder.messageProto(userNames.get(client.getSessionId())+": "+message.getText()).toByteArray());
 		
 		
@@ -145,59 +203,14 @@ public class ChatServer implements ConnectListener, DisconnectListener{
 			if(socketClient.getSessionId() == client.getSessionId()){
 				continue;
 			}
-			socketClient.sendEvent(Protocol.MSG.message.name(), 
-		    		ChatProtoEncoder.messageProto(userNames.get(client.getSessionId())+": "+msg).toByteArray());
-		}
-	}
-	
-	private void handleChangeUserName(){
-		server.addEventListener(Protocol.MSG.changeName.name(), byte[].class, new DataListener<byte[]>() {
-			@Override
-			public void onData(SocketIOClient client, byte[] data, AckRequest ackSender) {
-				String userName = ChatProtoDecoder.changeNameCmd(data).getUserName();
-				if(userName.indexOf(USER_NAME_PREFIX) == 0){
-					client.sendEvent(Protocol.RESULT.nameResult.name(), 
-							ChatProtoEncoder.failNameResultProto("Names cannot begin with "+USER_NAME_PREFIX).toByteArray());
-				}else{
-					if(namesUsed.contains(userName)){
-						client.sendEvent(Protocol.RESULT.nameResult.name(), 
-								ChatProtoEncoder.failNameResultProto("That name is already in use!").toByteArray());
-					}else{
-						UUID sessionId = client.getSessionId();
-						String preUserName = userNames.get(sessionId);
-						namesUsed.add(userName);
-						userNames.put(sessionId, userName);
-						namesUsed.remove(preUserName);
-						
-						client.sendEvent(Protocol.RESULT.nameResult.name(), 
-								ChatProtoEncoder.nameResultProto(userName).toByteArray());
-						
-						SocketIONamespace room = server.getNamespace(currentRoom.get(sessionId));
-						broadcast(client, room, preUserName+" is now known as ["+userName+"]!");
-					}
+			executor.execute(new Runnable(){
+				@Override
+				public void run() {
+					socketClient.sendEvent(Protocol.MSG.message.name(), 
+				    		ChatProtoEncoder.messageProto((isSystem ? "" : userNameMap.get(client.getSessionId())+": ")+msg).toByteArray());
 				}
-			}
-		});
-	}
-	
-	private void handleJoinOtherRoom(){
-		server.addEventListener(Protocol.MSG.join.name(), byte[].class, new DataListener<byte[]>() {
-			@Override
-			public void onData(SocketIOClient client, byte[] data, AckRequest ackSender) {
-				String newRoom = ChatProtoDecoder.joinCmd(data).getNewRoom();
-				UUID sessionId = client.getSessionId();
-				String roomName = currentRoom.get(sessionId);
-				Namespace room = (Namespace)server.getNamespace(roomName);
-				//room.leave(roomName, sessionId);
-				//room.leaveRoom(roomName, sessionId);
-				room.onDisconnect(client);
-				
-				broadcast(client, room, userNames.get(sessionId)+" changed room to ["+newRoom+"]!");
-				broadcast(client, room, usersInRoomSummary(roomName));
-				
-				joinRoom(client, newRoom);
-			}
-		});
+			});
+		}
 	}
 	
 	private void handleQueryRooms(){
@@ -217,12 +230,27 @@ public class ChatServer implements ConnectListener, DisconnectListener{
 	
 	@Override
 	public void onDisconnect(SocketIOClient client) {
-		System.out.println(client.getSessionId()+" disconnecting...");
-		String roomName = currentRoom.get(client.getSessionId());
+		UUID sessionId = client.getSessionId();
+		System.out.println(sessionId+" disconnecting...");
+		leaveRoom(client);
+		userRoomMap.remove(sessionId);
+		usedNames.remove(userNameMap.remove(sessionId));
+	}
+	
+	private Namespace leaveRoom(SocketIOClient client){
+		UUID sessionId = client.getSessionId();
+		String roomName = userRoomMap.get(sessionId);
 		Namespace room = (Namespace)server.getNamespace(roomName);
 		room.onDisconnect(client);
+		System.out.println("leave "+roomName+" left client:"+room.getAllClients().size());
 		//room.leaveRoom(roomName, client.getSessionId());
 		//client.leaveRoom();
+		if(room.getAllClients().isEmpty()){
+			server.removeNamespace(roomName);
+		}
+		
+		systemBroadcast(client, room, usersInRoomSummary(roomName));
+		return room;
 	}
 	
     public static void main(String[] args) throws InterruptedException, UnsupportedEncodingException {
