@@ -30,23 +30,25 @@ public class ChatServer implements ConnectListener, DisconnectListener{
 	private static final String USER_NAME_PREFIX = "Guest";
 	private static final String DEFAULT_ROOM = "Lobby";
 	
-	private static final Executor executor = Executors.newCachedThreadPool();
-	
 	private final AtomicInteger guestNum = new AtomicInteger(0);
 	private final Map<UUID, String> userNameMap = new HashMap<UUID, String>();
 	private final Set<String> usedNames = new HashSet<String>();
-	
 	private final Map<UUID, String> userRoomMap = new HashMap<UUID, String>();
 	
+	private final Executor executor = Executors.newCachedThreadPool();
 	private final SocketIOServer server;
 	
 	public ChatServer(){
-		Configuration config = new Configuration();
+        server = new SocketIOServer(config());
+	}
+	
+	private Configuration config(){
+	    Configuration config = new Configuration();
         config.setHostname("localhost");
         config.setPort(3001);
         config.setMaxFramePayloadLength(1024 * 1024);
         config.setMaxHttpContentLength(1024 * 1024);
-        server = new SocketIOServer(config);
+        return config;
 	}
 	
 	public void start(){
@@ -67,6 +69,10 @@ public class ChatServer implements ConnectListener, DisconnectListener{
 //		}
 //
 //        server.stop();
+	}
+	
+	public void stop(){
+	    server.stop();
 	}
 	
 	@Override
@@ -188,7 +194,7 @@ public class ChatServer implements ConnectListener, DisconnectListener{
 		broadcast(true, client, room, msg);
 	}
 	
-	private void broadcast(boolean isSystem, SocketIOClient client, SocketIONamespace room, String msg){
+	private void broadcast(final boolean isSystem, final SocketIOClient client, final SocketIONamespace room, final String msg){
 		//broadcastOperations.sendEvent(Protocol.MSG.message.name(), 
 		//		ChatProtoEncoder.messageProto(userNames.get(client.getSessionId())+": "+message.getText()).toByteArray());
 		
@@ -198,7 +204,7 @@ public class ChatServer implements ConnectListener, DisconnectListener{
 		
 		//为什么使用上面的无论是全局广播还是房间广播的操作都不行呢？
 		//只能使用如下for一个个去发送吗？
-		for(SocketIOClient socketClient:room.getAllClients()){
+		for(final SocketIOClient socketClient:room.getAllClients()){
 			//System.out.println("SessionId: "+socketClient.getSessionId());
 			if(socketClient.getSessionId() == client.getSessionId()){
 				continue;
