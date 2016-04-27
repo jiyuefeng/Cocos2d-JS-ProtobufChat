@@ -21,6 +21,7 @@ define(['socketio', 'protocol', 'chat', 'ProtoBuf'], function(socketio, protocol
         socket:null,
         chatApp:null,
 
+        chatConfig:null,
         config:null,
         room:null,
 
@@ -55,17 +56,10 @@ define(['socketio', 'protocol', 'chat', 'ProtoBuf'], function(socketio, protocol
             title.y = 3.5*title.height;
             header.addChild(title);
 
-            var config = this.config = new ccui.Text("--- Config ---", "Marker Felt", 28);
+            var config = this.config = new ccui.Text("--- Config ---", "Marker Felt", 20);
             config.anchorX = 0;
-            config.y = 2.4*config.height;
+            config.y = 2.8*config.height;
             header.addChild(config);
-
-            ProtoBuf.Util.fetch('src/chatConfig.json', function(data){
-                data = JSON.parse(data);
-                console.log(data);
-                self.config.setString('frontendType: '+data.frontendType+', chatType: '+data.chatType);
-                self.config.setColor(cc.color(0, 0, 0));
-            });
 
             var room = this.room = new ccui.Text("--- Room ---", "Marker Felt", 25);
             room.anchorX = 0;
@@ -152,11 +146,13 @@ define(['socketio', 'protocol', 'chat', 'ProtoBuf'], function(socketio, protocol
             //var socket = socketio.connect('localhost:3000');
             //console.log(socket);
 
-            var chatConfig;
             ProtoBuf.Util.fetch('src/chatConfig.json', function(data){
-                chatConfig = JSON.parse(data);
-                console.log(chatConfig);
-                self.socket = socketio.connect('localhost:'+(chatConfig.backendType == 'java' ? 3001 : 3000));
+                self.chatConfig = JSON.parse(data);
+                console.log(self.chatConfig);
+                self.config.setString('frontendType: '+self.chatConfig.frontendType+', chatType: '+self.chatConfig.chatType+', backendType: '+self.chatConfig.backendType);
+                self.config.setColor(cc.color(0, 0, 0));
+
+                self.socket = socketio.connect('localhost:'+(self.chatConfig.backendType == 'java' ? 3001 : 3000));
                 console.log(self.socket);
                 self._listenEvent();
             });
@@ -195,10 +191,10 @@ define(['socketio', 'protocol', 'chat', 'ProtoBuf'], function(socketio, protocol
                 self.roomList = [];
                 self.roomScrollView.removeAllChildren();
 
-                for (var room in rooms) {
+                for (var index in rooms) {
                     //room = room.substring(1, room.length);
-                    if (room != '') {
-                        self.appendRoom(room);
+                    if (index != '') {
+                        self.appendRoom(rooms[index]);
                     }
                 }
 
