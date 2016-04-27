@@ -141,7 +141,7 @@ function handleChangeUserName(socket, userNames, namesUsed){
             }else{
                 socket.emit(RESULT.nameResult, new ChatProtocolBuffer.NameResultProto({
                     success:false,
-                    message:'That name is already in use!'
+                    name:'That name is already in use!'
                 }).toBuffer());
             }
         }

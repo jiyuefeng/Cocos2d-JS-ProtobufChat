@@ -1,6 +1,6 @@
 package ChatProtocolBuffer;
 
-option java_package = "com.why.game.chat";
+option java_package = "com.why.game.chat.proto";
 option java_outer_classname = "ChatProtocolBuffer";
 
 message TestProto{

@@ -1,4 +1,4 @@
-package com.why.game.chat;
+package com.why.game.chat.proto;
 
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
@@ -23,9 +23,10 @@ import com.corundumstudio.socketio.listener.ConnectListener;
 import com.corundumstudio.socketio.listener.DataListener;
 import com.corundumstudio.socketio.listener.DisconnectListener;
 import com.corundumstudio.socketio.namespace.Namespace;
-import com.why.game.chat.ChatProtocolBuffer.MessageProto;
+import com.why.game.chat.Protocol;
+import com.why.game.chat.proto.ChatProtocolBuffer.MessageProto;
 
-public class ChatServer implements ConnectListener, DisconnectListener{
+public class ChatProtoServer implements ConnectListener, DisconnectListener{
 
 	private static final String USER_NAME_PREFIX = "Guest";
 	private static final String DEFAULT_ROOM = "Lobby";
@@ -38,7 +39,7 @@ public class ChatServer implements ConnectListener, DisconnectListener{
 	private final Executor executor = Executors.newCachedThreadPool();
 	private final SocketIOServer server;
 	
-	public ChatServer(){
+	public ChatProtoServer(){
         server = new SocketIOServer(config());
 	}
 	
@@ -260,7 +261,7 @@ public class ChatServer implements ConnectListener, DisconnectListener{
 	}
 	
     public static void main(String[] args) throws InterruptedException, UnsupportedEncodingException {
-    	new ChatServer().start();
+    	new ChatProtoServer().start();
     }
 
 }

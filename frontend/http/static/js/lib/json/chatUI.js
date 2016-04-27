@@ -2,7 +2,8 @@ define(['jquery', 'socketio', 'protocol', 'chat', 'ProtoBuf'], function($, socke
     var MSG = protocol.MSG;
     var RESULT = protocol.RESULT;
 
-    var socket = socketio.connect('localhost:3000');
+    var socket = socketio.connect('localhost:3000'); //nodejs
+    //var socket = socketio.connect('localhost:3001'); //java
     console.log(socket);
 
     $(document).ready(function () {
@@ -14,6 +15,7 @@ define(['jquery', 'socketio', 'protocol', 'chat', 'ProtoBuf'], function($, socke
 
         var $messages = $('#messages');
         var $roomList = $('#roomList');
+        var $userName = $('#userName');
         var $sendMessage = $('#sendMessage');
         var chatApp = new chat.Chat(socket);
         console.log('jquery ready...');
@@ -22,8 +24,9 @@ define(['jquery', 'socketio', 'protocol', 'chat', 'ProtoBuf'], function($, socke
             var message;
             if (result.success) {
                 message = 'You are now known as [' + result.name + ']!';
+                $userName.text(result.name);
             } else {
-                message = result.message;
+                message = result.name;
             }
             $messages.append(divSystemContentElement(message));
         });
@@ -35,6 +38,7 @@ define(['jquery', 'socketio', 'protocol', 'chat', 'ProtoBuf'], function($, socke
 
         socket.on(MSG.message, function (message) {
             $messages.append($('<div></div>').text(message.text));
+            $messages.scrollTop($messages.prop('scrollHeight'));
         });
 
         socket.on(MSG.rooms, function (rooms) {
@@ -44,7 +48,7 @@ define(['jquery', 'socketio', 'protocol', 'chat', 'ProtoBuf'], function($, socke
             for (var room in rooms) {
                 //room = room.substring(1, room.length);
                 if (room != '') {
-                    $roomList.append(divEscapedContentElement(room));
+                    $roomList.append(divEscapedContentElement(rooms[room]));
                 }
             }
 

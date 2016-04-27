@@ -1,9 +1,9 @@
-package com.why.game.chat;
+package com.why.game.chat.proto;
 
 import com.google.protobuf.InvalidProtocolBufferException;
-import com.why.game.chat.ChatProtocolBuffer.ChangeNameCmdProto;
-import com.why.game.chat.ChatProtocolBuffer.JoinCmdProto;
-import com.why.game.chat.ChatProtocolBuffer.MessageProto;
+import com.why.game.chat.proto.ChatProtocolBuffer.ChangeNameCmdProto;
+import com.why.game.chat.proto.ChatProtocolBuffer.JoinCmdProto;
+import com.why.game.chat.proto.ChatProtocolBuffer.MessageProto;
 
 public class ChatProtoDecoder {
 

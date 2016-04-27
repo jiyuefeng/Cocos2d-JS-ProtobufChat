@@ -1,11 +1,11 @@
-package com.why.game.chat;
+package com.why.game.chat.proto;
 
 import java.util.List;
 
-import com.why.game.chat.ChatProtocolBuffer.JoinResultProto;
-import com.why.game.chat.ChatProtocolBuffer.MessageProto;
-import com.why.game.chat.ChatProtocolBuffer.NameResultProto;
-import com.why.game.chat.ChatProtocolBuffer.RoomsProto;
+import com.why.game.chat.proto.ChatProtocolBuffer.JoinResultProto;
+import com.why.game.chat.proto.ChatProtocolBuffer.MessageProto;
+import com.why.game.chat.proto.ChatProtocolBuffer.NameResultProto;
+import com.why.game.chat.proto.ChatProtocolBuffer.RoomsProto;
 
 public class ChatProtoEncoder {
 

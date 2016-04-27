@@ -126,7 +126,7 @@ function handleChangeUserName(socket, userNames, namesUsed){
             }else{
                 socket.emit(RESULT.nameResult, {
                     success:false,
-                    message:'That name is already in use!'
+                    name:'That name is already in use!'
                 });
             }
         }
