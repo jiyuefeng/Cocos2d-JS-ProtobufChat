@@ -24,6 +24,7 @@ define(['socketio', 'protocol', 'chat', 'ByteBuffer', 'Long', 'ProtoBuf'], funct
 
     var ChatLayer = cc.Layer.extend({
 
+        socket:null,
         chatApp:null,
 
         config:null,
@@ -154,34 +155,52 @@ define(['socketio', 'protocol', 'chat', 'ByteBuffer', 'Long', 'ProtoBuf'], funct
         _init:function(){
             var self = this;
 
-            var socket = socketio.connect('localhost:3000');
+            //var socket = socketio.connect('localhost:3000');
             //console.log(socket);
 
-            this.chatApp = new chat.Chat(socket);
+            var chatConfig;
+            ProtoBuf.Util.fetch('src/chatConfig.json', function(data){
+                chatConfig = JSON.parse(data);
+                console.log(chatConfig);
+                self.socket = socketio.connect('localhost:'+(chatConfig.backendType == 'java' ? 3001 : 3000));
+                console.log(self.socket);
+                self._listenEvent();
+            });
 
-            socket.on(RESULT.nameResult, function (result) {
+
+
+            this.schedule(function () {
+                self.socket.emit(MSG.rooms);
+            }, 5, cc.REPEAT_FOREVER, 1);
+        },
+
+        _listenEvent:function(){
+            var self = this;
+            self.chatApp = new chat.Chat(self.socket);
+
+            self.socket.on(RESULT.nameResult, function (result) {
                 result = ChatProtocolBuffer.NameResultProto.decode(result);
                 var message;
                 if (result.success) {
                     message = 'You are now known as [' + result.name + ']!';
                 } else {
-                    message = result.message;
+                    message = result.name;
                 }
                 self.appendMessage(message);
             });
 
-            socket.on(RESULT.joinResult, function (result) {
+            self.socket.on(RESULT.joinResult, function (result) {
                 result = ChatProtocolBuffer.JoinResultProto.decode(result);
                 self.room.setString(result.room);
                 self.appendMessage('Room changed!');
             });
 
-            socket.on(MSG.message, function (message) {
+            self.socket.on(MSG.message, function (message) {
                 message = ChatProtocolBuffer.MessageProto.decode(message);
                 self.appendMessage(message.text);
             });
 
-            socket.on(MSG.rooms, function (rooms) {
+            self.socket.on(MSG.rooms, function (rooms) {
                 console.log(rooms);
                 rooms = ChatProtocolBuffer.RoomsProto.decode(rooms).rooms;
                 console.log(rooms);
@@ -197,14 +216,10 @@ define(['socketio', 'protocol', 'chat', 'ByteBuffer', 'Long', 'ProtoBuf'], funct
                 }
 
                 /*$('#roomList div').click(function () {
-                    chatApp.processCommand('/join ' + $(this).text())
-                    $sendMessage.focus();
-                });*/
+                 chatApp.processCommand('/join ' + $(this).text())
+                 $sendMessage.focus();
+                 });*/
             });
-
-            this.schedule(function () {
-                socket.emit(MSG.rooms);
-            }, 5, cc.REPEAT_FOREVER, 1);
         },
 
         appendRoom:function(room){

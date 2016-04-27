@@ -230,6 +230,9 @@ public class ChatJsonServer implements ConnectListener, DisconnectListener{
 				Collection<SocketIONamespace> existsRooms = server.getAllNamespaces();
 				List<String> roomNames = new ArrayList<String>(existsRooms.size());
 				for(SocketIONamespace room:existsRooms){
+					if("".equals(room.getName())){
+						continue;
+					}
 					roomNames.add(room.getName());
 				}
 				client.sendEvent(Protocol.MSG.rooms.name(), roomNames);
