@@ -65,7 +65,7 @@ frontend is **http(actually html is a better name)** And chat serialization prot
 ## Start Java backend server
 1. `cd backend/java`
 2. `mvn clean compile`
-3. `mvn exec:java -Dexec.mainClass="com.why.game.chat.proto.ChatProtoServer"`
+3. `mvn exec:java` default protocol is proto, you can pass protocol like this:`mvn exec:java -Dexec.args="json"`
 4. if you want client to connect Java backend server you have to change the socketio.connect in chatUI.js as below:
 
 ```java
