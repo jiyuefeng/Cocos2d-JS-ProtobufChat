@@ -3,6 +3,7 @@ var fs = require('fs');
 var path = require('path');
 var mime = require('mime');
 var open = require("open");
+var exec = require('child_process').exec
 
 var forntendTypePath = {
     'http':'http/static/js',
@@ -14,6 +15,7 @@ var config = JSON.parse(configFile);
 console.log(config);
 fs.writeFileSync('../../frontend/'+forntendTypePath[config.frontendType]+'/chatConfig.json', configFile);
 
+var isJavaBackend = config.backendType == 'java';
 String.prototype.replaceAll = function(s1, s2) {
     var demo = this;
     while (demo.indexOf(s1) != - 1){
@@ -45,12 +47,36 @@ var server = http.createServer(function(request, response){
     serveStatic(response, cache, absPath);
 });
 
-server.listen(port, function(){
-    console.log('Server listening on porn '+port);
-    open("http://localhost:"+port);
-});
+if(isJavaBackend){
+    setTimeout(function () {
+        server.listen(port, function(){
+            console.log('Server listening on porn '+port);
+            open("http://localhost:"+port);
+        });
+    }, 3000);
 
-chatServer.listen(server);
+    var compile = exec('mvn -f ../java/pom.xml clean compile');
+    compile.stdout.on('data', function (data) {
+        console.log(data);
+    });
+
+    compile.on('exit', function (code) {
+        var execJava = exec('mvn -f ../java/pom.xml exec:java -Dexec.args="'+config.chatType+'"');
+        execJava.stdout.on('data', function (data) {
+            console.log(data);
+        });
+
+        execJava.on('exit', function (code) {
+            console.log('child_process execJava exit! code：' + code);
+        });
+    });
+}else{
+    server.listen(port, function(){
+        console.log('Server listening on porn '+port);
+        open("http://localhost:"+port);
+    });
+    chatServer.listen(server);
+}
 
 function send404(response){
     response.writeHead(404, {'content-type':'text/plain'});

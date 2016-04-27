@@ -1,4 +1,5 @@
 {
   "frontendType" : "http",
-  "chatType" : "protobuf"
+  "chatType" : "protobuf",
+  "backendType" : "nodejs"
 }

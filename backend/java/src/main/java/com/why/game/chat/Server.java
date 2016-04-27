@@ -9,7 +9,7 @@ public class Server {
 		if(args.length > 0){
 			String protocol = args[0];
 			System.out.println();
-			if(protocol.equals("proto")){
+			if(protocol.equals("protobuf")){
 				new ChatProtoServer().start();
 			}else if(protocol.equals("json")){
 				new ChatJsonServer().start();
