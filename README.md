@@ -17,12 +17,16 @@ frontend(Cocos2d-JS/Html/RequireJS) communicate with backend(NodeJS/Java) by Htt
 ## Config
 you can modify **chatConfig.json** to choose **What You Want To Run** in  below:
 
-| frontend type (client) | chat type (serialization protocol) |
-| ---------------------- | ---------------------------------- |
-| http | json |
-| http | protobuf |
-| coco2d-js | json |
-| coco2d-js | protobuf |
+| frontend type (client) | chat type (serialization protocol) | backend type (server) |
+| ---------------------- | ---------------------------------- | -------------------- |
+| http | json | nodejs |
+| http | protobuf | nodejs |
+| coco2d-js | json | nodejs |
+| coco2d-js | protobuf | nodejs |
+| http | json | java |
+| http | protobuf | java |
+| coco2d-js | json | java |
+| coco2d-js | protobuf | java |
 
 ## Snapshot
 frontend is **cocos2d-js** And chat serialization protocol is **protobuf**
@@ -62,16 +66,11 @@ frontend is **http(actually html is a better name)** And chat serialization prot
 ## Update
 **2016.4.27** use [netty-socketio](https://github.com/mrniko/netty-socketio) to Make Java backend
 
-## Start Java backend server
-1. `cd backend/java`
-2. `mvn clean compile`
-3. `mvn exec:java` default protocol is proto, you can pass protocol like this:`mvn exec:java -Dexec.args="json"`
-4. if you want client to connect Java backend server you have to change the socketio.connect in chatUI.js as below:
-
+**2016.4.28** use NodeJS(child_process module & maven command) to start Java backend server, now you can edit **backendType[nodejs/java]** in `chatConfig.json`:
 ```java
-	//var socket = socketio.connect('localhost:3000'); //nodejs
-    var socket = socketio.connect('localhost:3001'); //java
+{
+  "frontendType" : "http",
+  "chatType" : "protobuf",
+  "backendType" : "nodejs"
+}
 ```
-
-## TODO
-use NodeJS(child_process module & maven command) to start Java backend server.
