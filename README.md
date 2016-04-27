@@ -59,5 +59,19 @@ frontend is **http(actually html is a better name)** And chat serialization prot
 
 ![12](images/12.png)
 
+## Update
+**2016.4.27** use [netty-socketio](https://github.com/mrniko/netty-socketio) to Make Java backend
+
+## Start Java backend server
+1. `cd backend/java`
+2. `mvn clean compile`
+3. `mvn exec:java -Dexec.mainClass="com.why.game.chat.proto.ChatProtoServer"`
+4. if you want client to connect Java backend server you have to change the socketio.connect in chatUI.js as below:
+
+```java
+	//var socket = socketio.connect('localhost:3000'); //nodejs
+    var socket = socketio.connect('localhost:3001'); //java
+```
+
 ## TODO
-use [netty-socketio](https://github.com/mrniko/netty-socketio) to Make Java backend
+use NodeJS(child_process module & maven command) to start Java backend server.
