@@ -1,6 +1,5 @@
 package com.why.game.chat.proto;
 
-import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -28,6 +27,9 @@ import com.why.game.chat.proto.ChatProtocolBuffer.MessageProto;
 
 public class ChatProtoServer implements ConnectListener, DisconnectListener{
 
+	private static final String HOST = "localhost";
+	private static final int PORT = 3001;
+	
 	private static final String USER_NAME_PREFIX = "Guest";
 	private static final String DEFAULT_ROOM = "Lobby";
 	
@@ -45,8 +47,8 @@ public class ChatProtoServer implements ConnectListener, DisconnectListener{
 	
 	private Configuration config(){
 	    Configuration config = new Configuration();
-        config.setHostname("localhost");
-        config.setPort(3001);
+        config.setHostname(HOST);
+        config.setPort(PORT);
         config.setMaxFramePayloadLength(1024 * 1024);
         config.setMaxHttpContentLength(1024 * 1024);
         return config;
@@ -62,6 +64,7 @@ public class ChatProtoServer implements ConnectListener, DisconnectListener{
         handleQueryRooms();
         
         server.start();
+        System.out.println("\n------ "+this.getClass().getSimpleName()+"start on "+PORT+" ------\n");
 
 //        try {
 //			Thread.sleep(Integer.MAX_VALUE);
@@ -260,7 +263,7 @@ public class ChatProtoServer implements ConnectListener, DisconnectListener{
 		return room;
 	}
 	
-    public static void main(String[] args) throws InterruptedException, UnsupportedEncodingException {
+    public static void main(String[] args){
     	new ChatProtoServer().start();
     }
 
