@@ -1,21 +1,25 @@
 package com.why.game.chat.json;
 
+import com.why.game.chat.json.ChatJson.JoinResult;
+import com.why.game.chat.json.ChatJson.Message;
+import com.why.game.chat.json.ChatJson.NameResult;
+
 public class ChatJsonEncoder {
 
-	public static ChatJson.NameResult nameResultProto(String name) {
-		return new ChatJson.NameResult(true, name);
+	public static NameResult nameResult(String name) {
+		return new NameResult(true, name);
 	}
 	
-	public static ChatJson.NameResult failNameResultProto(String failMsg) {
-		return new ChatJson.NameResult(false, failMsg);
+	public static NameResult failNameResult(String failMsg) {
+		return new NameResult(false, failMsg);
 	}
 
-	public static ChatJson.JoinResult joinResultProto(String roomName) {
-		return new ChatJson.JoinResult(roomName);
+	public static JoinResult joinResult(String roomName) {
+		return new JoinResult(roomName);
 	}
 
-	public static ChatJson.Message messageProto(String text) {
-		return new ChatJson.Message(text);
+	public static Message message(String text) {
+		return new Message(text);
 	}
 
 }

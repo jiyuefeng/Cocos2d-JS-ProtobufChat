@@ -91,7 +91,7 @@ public class ChatJsonServer implements ConnectListener, DisconnectListener{
 	private int assignGuestName(SocketIOClient client) {
 		String userName = USER_NAME_PREFIX+guestNum;
 		userNameMap.put(client.getSessionId(), userName);
-		client.sendEvent(Protocol.RESULT.nameResult.name(), ChatJsonEncoder.nameResultProto(userName));
+		client.sendEvent(Protocol.RESULT.nameResult.name(), ChatJsonEncoder.nameResult(userName));
 		usedNames.add(userName);
 		return guestNum.incrementAndGet();
 	}
@@ -106,9 +106,9 @@ public class ChatJsonServer implements ConnectListener, DisconnectListener{
 		userRoomMap.put(sessionId, roomName);
 		
 		client.sendEvent(Protocol.RESULT.joinResult.name(), 
-				ChatJsonEncoder.joinResultProto(roomName));
+				ChatJsonEncoder.joinResult(roomName));
 		client.sendEvent(Protocol.MSG.message.name(), 
-				ChatJsonEncoder.messageProto(usersInRoomSummary(roomName)));
+				ChatJsonEncoder.message(usersInRoomSummary(roomName)));
 		
 //		server.getRoomOperations(roomName).sendEvent(Protocol.MSG.message.name(), 
 //				ChatProtoEncoder.messageProto(userNameMap.get(sessionId)+" has joined "+roomName+'!').toByteArray());
@@ -155,11 +155,11 @@ public class ChatJsonServer implements ConnectListener, DisconnectListener{
 				String userName = data.getUserName();
 				if(userName.indexOf(USER_NAME_PREFIX) == 0){
 					client.sendEvent(Protocol.RESULT.nameResult.name(), 
-							ChatJsonEncoder.failNameResultProto("Names cannot begin with "+USER_NAME_PREFIX));
+							ChatJsonEncoder.failNameResult("Names cannot begin with "+USER_NAME_PREFIX));
 				}else{
 					if(usedNames.contains(userName)){
 						client.sendEvent(Protocol.RESULT.nameResult.name(), 
-								ChatJsonEncoder.failNameResultProto("That name is already in use!"));
+								ChatJsonEncoder.failNameResult("That name is already in use!"));
 					}else{
 						UUID sessionId = client.getSessionId();
 						String preUserName = userNameMap.get(sessionId);
@@ -168,7 +168,7 @@ public class ChatJsonServer implements ConnectListener, DisconnectListener{
 						usedNames.remove(preUserName);
 						
 						client.sendEvent(Protocol.RESULT.nameResult.name(), 
-								ChatJsonEncoder.nameResultProto(userName));
+								ChatJsonEncoder.nameResult(userName));
 						
 						SocketIONamespace room = server.getNamespace(userRoomMap.get(sessionId));
 						systemBroadcast(client, room, preUserName+" is now known as ["+userName+"]!");
@@ -217,7 +217,7 @@ public class ChatJsonServer implements ConnectListener, DisconnectListener{
 				@Override
 				public void run() {
 					socketClient.sendEvent(Protocol.MSG.message.name(), 
-				    		ChatJsonEncoder.messageProto((isSystem ? "" : userNameMap.get(client.getSessionId())+": ")+msg));
+				    		ChatJsonEncoder.message((isSystem ? "" : userNameMap.get(client.getSessionId())+": ")+msg));
 				}
 			});
 		}
