@@ -14,6 +14,16 @@ frontend(Cocos2d-JS/Html/RequireJS) communicate with backend(NodeJS/Java) by Htt
 4. Run: `node server.js`
 5. Open `http://localhost:3000` in a recent browser
 
+## Java Support Instructions
+1. Install JDK/JRE 1.7+
+2. Install Maven 2.2+
+3. Run: `mvn -f backend/java/pom.xml clean compile` it will take a long time to download and set up dependencies jar packages
+4. Make sure the backendType is `java` in `chatConfig.json`
+5. Change Directory to backend/nodejs `cd backend/nodejs`
+6. Run: `node server.js`
+7. Open `http://localhost:3000` in a recent browser
+
+
 ## Config
 you can modify **chatConfig.json** to choose **What You Want To Run** in  below:
 
