@@ -25,7 +25,7 @@ frontend(Cocos2d-JS/Html/RequireJS) communicate with backend(NodeJS/Java) by Htt
 
 
 ## Config
-you can modify **chatConfig.json** to choose **What You Want To Run** in  below:
+you can edit **chatConfig.json** to choose **What You Want To Run** as below:
 
 | frontend type (client) | chat type (serialization protocol) | backend type (server) |
 | ---------------------- | ---------------------------------- | -------------------- |
@@ -76,7 +76,7 @@ frontend is **http(actually html is a better name)** And chat serialization prot
 ## Update
 **2016.4.27** use [netty-socketio](https://github.com/mrniko/netty-socketio) to Make Java backend
 
-**2016.4.28** use NodeJS(child_process module & maven command) to start Java backend server, now you can edit **backendType[nodejs/java]** in `chatConfig.json`:
+**2016.4.28** use NodeJS(child_process module & maven command) to start Java backend server, now you can edit `backendType[nodejs/java]` in `chatConfig.json`:
 ```java
 {
   "frontendType" : "http",
