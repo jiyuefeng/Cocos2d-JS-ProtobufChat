@@ -14,7 +14,7 @@ frontend(Cocos2d-JS/Html/RequireJS) communicate with backend(NodeJS/Java) by Htt
 4. Run: `node server.js`
 5. Open `http://localhost:3000` in a recent browser
 
-## Java Support Instructions
+## Instructions for Java/[Netty-socketio](https://github.com/mrniko/netty-socketio)
 1. Install JDK/JRE 1.7+
 2. Install Maven 2.2+
 3. Run: `mvn -f backend/java/pom.xml clean compile` it will take a long time to download and set up dependencies jar packages
