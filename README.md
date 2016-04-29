@@ -7,7 +7,7 @@
 
 frontend(Cocos2d-JS/Html/RequireJS) communicate with backend(NodeJS/Java) by Http/SocketIO/Protobuf/Json protocol to implements Chat
 
-## Instructions
+## Instructions for NodeJS
 1. Set up dependencies: `npm install`
 2. Copy the cocos2d-js `frameworks` to frontend/cocos2d-js directory
 3. Change Directory to backend/nodejs `cd backend/nodejs`
