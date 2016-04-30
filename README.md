@@ -10,9 +10,10 @@ frontend(Cocos2d-JS/Html/RequireJS) communicate with backend(NodeJS/Java) by Htt
 ## Instructions for NodeJS
 1. Set up dependencies: `npm install`
 2. Copy the cocos2d-js `frameworks` to frontend/cocos2d-js directory
-3. Change Directory to backend/nodejs `cd backend/nodejs`
-4. Run: `node server.js`
-5. Open `http://localhost:3000` in a recent browser
+3. Make sure the backendType is `nodejs` in `chatConfig.json`
+4. Change Directory to backend/nodejs `cd backend/nodejs`
+5. Run: `node server.js`
+6. Open `http://localhost:3000` in a recent browser
 
 ## Instructions for Java/[Netty-socketio](https://github.com/mrniko/netty-socketio)
 1. Install JDK/JRE 1.7+
