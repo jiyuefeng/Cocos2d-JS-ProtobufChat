@@ -8,4 +8,5 @@
 /frontend/*/*/requireJsConfig.js
 /frontend/*/*/chatConfig.json
 
+.settings/
 /backend/java/.settings/
