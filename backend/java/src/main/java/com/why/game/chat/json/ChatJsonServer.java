@@ -1,7 +1,6 @@
 package com.why.game.chat.json;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -13,7 +12,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import com.corundumstudio.socketio.AckRequest;
-import com.corundumstudio.socketio.BroadcastOperations;
 import com.corundumstudio.socketio.Configuration;
 import com.corundumstudio.socketio.SocketIOClient;
 import com.corundumstudio.socketio.SocketIONamespace;
@@ -97,11 +95,11 @@ public class ChatJsonServer implements ConnectListener, DisconnectListener{
 	}
 
 	private void joinRoom(SocketIOClient client, String roomName) {
-		Namespace room = (Namespace)server.addNamespace(roomName);
-		room.onConnect(client);
-		room.addClient(client);
+		//Namespace room = (Namespace)server.addNamespace(roomName);
+		//room.onConnect(client);
+		//room.addClient(client);
 		//namespace.join(room, client.getSessionId());
-		//client.joinRoom(roomName);
+		client.joinRoom(roomName);
 		UUID sessionId = client.getSessionId();
 		userRoomMap.put(sessionId, roomName);
 		
@@ -112,19 +110,12 @@ public class ChatJsonServer implements ConnectListener, DisconnectListener{
 		
 //		server.getRoomOperations(roomName).sendEvent(Protocol.MSG.message.name(), 
 //				ChatProtoEncoder.messageProto(userNameMap.get(sessionId)+" has joined "+roomName+'!').toByteArray());
-		systemBroadcast(client, room, userNameMap.get(sessionId)+" has joined "+roomName+'!');
+		systemBroadcast(client, roomName, userNameMap.get(sessionId)+" has joined "+roomName+'!');
 	}
 
 	private String usersInRoomSummary(String roomName) {
 		StringBuilder sb = new StringBuilder("Users currently in "+roomName+": ");
-		//System.out.println("roomName="+roomName);
-		SocketIONamespace room = server.getNamespace(roomName);
-		if(room == null){
-			//System.out.println(roomName+"=null");
-			return "";
-		}
-		//System.out.println("roomName client size:"+room.getAllClients().size());
-		for(SocketIOClient client:room.getAllClients()){
+		for(SocketIOClient client:server.getRoomOperations(roomName).getClients()){
 			sb.append(userNameMap.get(client.getSessionId())).append(",");
 		}
 		sb.deleteCharAt(sb.length()-1).append("!");
@@ -135,15 +126,7 @@ public class ChatJsonServer implements ConnectListener, DisconnectListener{
 		server.addEventListener(Protocol.MSG.message.name(), Message.class, new DataListener<Message>() {
             @Override
             public void onData(SocketIOClient client, Message message, AckRequest ackRequest) {
-            	String roomName = message.getRoom();
-            	//System.out.println("onData roomName="+roomName);
-            	SocketIONamespace room = server.getNamespace(roomName);
-            	BroadcastOperations broadcastOperations = server.getRoomOperations(roomName);
-            	//System.out.println("broadcastOperations size="+broadcastOperations.getClients().size());
-            	//System.out.println("room size="+room.getAllClients().size());
-            	//System.out.println("room size="+room.getAllClients().size());
-            	
-            	clientBroadcast(client, room, message.getText());
+            	clientBroadcast(client, message.getRoom(), message.getText());
             }
         });
 	}
@@ -167,11 +150,8 @@ public class ChatJsonServer implements ConnectListener, DisconnectListener{
 						userNameMap.put(sessionId, userName);
 						usedNames.remove(preUserName);
 						
-						client.sendEvent(Protocol.RESULT.nameResult.name(), 
-								ChatJsonEncoder.nameResult(userName));
-						
-						SocketIONamespace room = server.getNamespace(userRoomMap.get(sessionId));
-						systemBroadcast(client, room, preUserName+" is now known as ["+userName+"]!");
+						client.sendEvent(Protocol.RESULT.nameResult.name(), ChatJsonEncoder.nameResult(userName));
+						systemBroadcast(client, userRoomMap.get(sessionId), preUserName+" is now known as ["+userName+"]!");
 					}
 				}
 			}
@@ -183,22 +163,22 @@ public class ChatJsonServer implements ConnectListener, DisconnectListener{
 			@Override
 			public void onData(SocketIOClient client, JoinCmd data, AckRequest ackSender) {
 				String newRoom = data.getNewRoom();
-				Namespace room = leaveRoom(client);
-				systemBroadcast(client, room, userNameMap.get(client.getSessionId())+" changed room to ["+newRoom+"]!");
+				String oldRoom = leaveRoom(client);
+				systemBroadcast(client, oldRoom, userNameMap.get(client.getSessionId())+" changed room to ["+newRoom+"]!");
 				joinRoom(client, newRoom);
 			}
 		});
 	}
 	
-	private void clientBroadcast(SocketIOClient client, SocketIONamespace room, String msg){
+	private void clientBroadcast(SocketIOClient client, String room, String msg){
 		broadcast(false, client, room, msg);
 	}
 	
-	private void systemBroadcast(SocketIOClient client, SocketIONamespace room, String msg){
+	private void systemBroadcast(SocketIOClient client, String room, String msg){
 		broadcast(true, client, room, msg);
 	}
 	
-	private void broadcast(final boolean isSystem, final SocketIOClient client, final SocketIONamespace room, final String msg){
+	private void broadcast(final boolean isSystem, final SocketIOClient client, final String room, final String msg){
 		//broadcastOperations.sendEvent(Protocol.MSG.message.name(), 
 		//		ChatProtoEncoder.messageProto(userNames.get(client.getSessionId())+": "+message.getText()).toByteArray());
 		
@@ -208,7 +188,7 @@ public class ChatJsonServer implements ConnectListener, DisconnectListener{
 		
 		//为什么使用上面的无论是全局广播还是房间广播的操作都不行呢？
 		//只能使用如下for一个个去发送吗？
-		for(final SocketIOClient socketClient:room.getAllClients()){
+		for(final SocketIOClient socketClient:server.getRoomOperations(room).getClients()){
 			//System.out.println("SessionId: "+socketClient.getSessionId());
 			if(socketClient.getSessionId() == client.getSessionId()){
 				continue;
@@ -227,13 +207,13 @@ public class ChatJsonServer implements ConnectListener, DisconnectListener{
 		server.addEventListener(Protocol.MSG.rooms.name(), String.class, new DataListener<String>() {
 			@Override
 			public void onData(SocketIOClient client, String data, AckRequest ackSender) {
-				Collection<SocketIONamespace> existsRooms = server.getAllNamespaces();
-				List<String> roomNames = new ArrayList<String>(existsRooms.size());
-				for(SocketIONamespace room:existsRooms){
-					if("".equals(room.getName())){
+				SocketIONamespace socketIONamespace = server.getNamespace(Namespace.DEFAULT_NAME);
+				List<String> roomNames = new ArrayList<String>();
+				for(String room:((Namespace)socketIONamespace).getRooms()){
+					if("".equals(room)){
 						continue;
 					}
-					roomNames.add(room.getName());
+					roomNames.add(room);
 				}
 				client.sendEvent(Protocol.MSG.rooms.name(), roomNames);
 			}
@@ -249,20 +229,21 @@ public class ChatJsonServer implements ConnectListener, DisconnectListener{
 		usedNames.remove(userNameMap.remove(sessionId));
 	}
 	
-	private Namespace leaveRoom(SocketIOClient client){
+	private String leaveRoom(SocketIOClient client){
 		UUID sessionId = client.getSessionId();
 		String roomName = userRoomMap.get(sessionId);
-		Namespace room = (Namespace)server.getNamespace(roomName);
-		room.onDisconnect(client);
-		System.out.println("leave "+roomName+" left client:"+room.getAllClients().size());
+		//Namespace room = (Namespace)server.getNamespace(roomName);
+		//room.onDisconnect(client);
+		//System.out.println("leave "+roomName+" left client:"+room.getAllClients().size());
 		//room.leaveRoom(roomName, client.getSessionId());
-		//client.leaveRoom();
-		if(room.getAllClients().isEmpty()){
-			server.removeNamespace(roomName);
-		}
+		client.leaveRoom(roomName);
+		//if(room.getAllClients().isEmpty()){
+			//server.removeNamespace(roomName);
+		//}
 		
-		systemBroadcast(client, room, usersInRoomSummary(roomName));
-		return room;
+		systemBroadcast(client, roomName, userNameMap.get(sessionId)+" has left "+roomName+'!');
+		systemBroadcast(client, roomName, usersInRoomSummary(roomName));
+		return roomName;
 	}
 	
     public static void main(String[] args){
