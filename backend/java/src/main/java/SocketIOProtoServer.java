@@ -10,14 +10,14 @@ import com.corundumstudio.socketio.listener.DisconnectListener;
  * 对应NodeJS用SocketIO实现Protobuf接收/发送二进制的例子<br/>
  * https://github.com/whg333/protobuf.js/tree/master/examples/socketio
  */
-public class EchoUpperCaseProtoServer implements ConnectListener, DisconnectListener{
+public class SocketIOProtoServer implements ConnectListener, DisconnectListener{
 	
 	private static final String HOST = "localhost";
 	private static final int PORT = 3001;
 	
 	private final SocketIOServer server;
 	
-	public EchoUpperCaseProtoServer(){
+	public SocketIOProtoServer(){
         server = new SocketIOServer(config());
 	}
 	
@@ -74,7 +74,7 @@ public class EchoUpperCaseProtoServer implements ConnectListener, DisconnectList
 	}
 	
 	public static void main(String[] args){
-    	new EchoUpperCaseProtoServer().start();
+    	new SocketIOProtoServer().start();
     }
 
 }
