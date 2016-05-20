@@ -7,6 +7,10 @@ public class Message {
 	public Message() {
 		
 	}
+	
+	public Message(String text) {
+        this.text = text;
+    }
 
 	public Message(Example.Message proto){
 		text = proto.getText();

@@ -7,17 +7,16 @@ import com.corundumstudio.socketio.listener.DataListener;
 import com.corundumstudio.socketio.listener.DisconnectListener;
 
 /**
- * 对应NodeJS用SocketIO实现Protobuf接收/发送二进制的例子<br/>
- * https://github.com/whg333/protobuf.js/tree/master/examples/socketio
+ * 与{@link SocketIOProtoServer}类似，这里为了测试就传递简单的String类型
  */
-public class SocketIOProtoServer implements ConnectListener, DisconnectListener{
+public class SocketIOStringServer implements ConnectListener, DisconnectListener{
 	
 	private static final String HOST = "localhost";
 	private static final int PORT = 3001;
 	
 	private final SocketIOServer server;
 	
-	public SocketIOProtoServer(){
+	public SocketIOStringServer(){
         server = new SocketIOServer(config());
 	}
 	
@@ -34,15 +33,15 @@ public class SocketIOProtoServer implements ConnectListener, DisconnectListener{
         server.addConnectListener(this);
         server.addDisconnectListener(this);
         
-        server.addEventListener("message", byte[].class, new DataListener<byte[]>() {
+        server.addEventListener("message", String.class, new DataListener<String>() {
             @Override
-            public void onData(SocketIOClient client, byte[] data, AckRequest ackRequest) {
-            	Message message = Message.parse(data);
+            public void onData(SocketIOClient client, String data, AckRequest ackRequest) {
+            	Message message = new Message(data);
             	System.out.println("Received: "+message.getText());
                 // Transform the text to upper case
             	message.setText(message.getText().toUpperCase());
                 // Re-encode it and send it back
-            	client.sendEvent("message", message.toByteArray());
+            	client.sendEvent("message", message.getText());
                 System.out.println("Sent: "+message.getText());
             }
         });
@@ -57,16 +56,16 @@ public class SocketIOProtoServer implements ConnectListener, DisconnectListener{
 
 	@Override
 	public void onConnect(SocketIOClient client) {
-		System.out.println(client.getSessionId()+" connecting...");
+		System.out.println(client.getSessionId()+" connecting..."+server.getAllClients().size());
 	}
 	
 	@Override
 	public void onDisconnect(SocketIOClient client) {
-		System.out.println(client.getSessionId()+" disconnecting...");
+		System.out.println(client.getSessionId()+" disconnecting..."+server.getAllClients().size());
 	}
 	
 	public static void main(String[] args){
-    	new SocketIOProtoServer().start();
+    	new SocketIOStringServer().start();
     }
 
 }

@@ -21,7 +21,7 @@ public class BroadcastGeneratorTask implements Runnable{
 	
 	private Message generateMessage(){
 		Message message = new Message();
-		message.setText(rnd.nextInt()+"");
+		message.setText("测试："+rnd.nextInt());
 		return message;
 	}
 	

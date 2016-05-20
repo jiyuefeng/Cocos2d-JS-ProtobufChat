@@ -40,7 +40,12 @@
 			<groupId>com.corundumstudio.socketio</groupId>
 			<artifactId>netty-socketio</artifactId>
 			<version>1.7.11-SNAPSHOT</version>
-		</dependency>
+    	</dependency>
+        <dependency>
+            <groupId>org.redisson</groupId>
+            <artifactId>redisson</artifactId>
+            <version>2.2.13</version>
+        </dependency>
 		<dependency>
 			<groupId>org.slf4j</groupId>
 			<artifactId>slf4j-simple</artifactId>
@@ -58,6 +63,12 @@
 		    <artifactId>protobuf-java-format</artifactId>
 		    <version>1.2</version>
 		</dependency>
+        
+        <dependency>
+            <groupId>io.socket</groupId>
+            <artifactId>socket.io-client</artifactId>
+            <version>0.7.0</version>
+        </dependency>
 	</dependencies>
 
 
