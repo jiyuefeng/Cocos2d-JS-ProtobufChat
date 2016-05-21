@@ -20,7 +20,12 @@ public class SocketIORedissonServer implements ConnectListener, DisconnectListen
 	private static final String HOST = "localhost";
 	private static final int PORT = 3001;
 	
-	private static final String REDIS_ADDRESS = "localhost:6381";
+	//单机模式
+	private static final String SINGLE_SERVER = "localhost:6381";
+	
+	//集群模式只需要写一个redis cluster模式下的服务器地址，
+	//因为redisson也和jedis一样会自动识别其他cluster模式下master和slave
+	private static final String CLUSTER_SERVER = "localhost:7000";
 	
 	private final SocketIOServer server;
 	
@@ -36,7 +41,8 @@ public class SocketIORedissonServer implements ConnectListener, DisconnectListen
 	    socketIOConfig.setMaxHttpContentLength(1024 * 1024);
         
         Config redissonConfig = new Config();
-        redissonConfig.useSingleServer().setAddress(REDIS_ADDRESS);
+        redissonConfig.useClusterServers().addNodeAddress(CLUSTER_SERVER);
+        //redissonConfig.useSingleServer().setAddress(SINGLE_SERVER_ADDRESS);
         RedissonClient redisson = Redisson.create(redissonConfig);
         
 //        RMap<String, String> map = redisson.getMap("anyMap");
@@ -54,7 +60,6 @@ public class SocketIORedissonServer implements ConnectListener, DisconnectListen
         server.addEventListener("message", byte[].class, new DataListener<byte[]>() {
             @Override
             public void onData(SocketIOClient client, byte[] data, AckRequest ackRequest) {
-                System.out.println((String)client.get("whg"));
             	Message message = Message.parse(data);
             	System.out.println("Received: "+message.getText());
                 // Transform the text to upper case
