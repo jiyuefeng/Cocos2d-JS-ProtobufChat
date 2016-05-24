@@ -1,7 +1,12 @@
+import java.util.Arrays;
+import java.util.List;
+import java.util.Random;
+
 import org.redisson.Config;
 import org.redisson.Redisson;
 import org.redisson.RedissonClient;
-import org.redisson.core.RMap;
+import org.redisson.core.MessageListener;
+import org.redisson.core.RTopic;
 
 import com.corundumstudio.socketio.AckRequest;
 import com.corundumstudio.socketio.Configuration;
@@ -11,11 +16,15 @@ import com.corundumstudio.socketio.listener.ConnectListener;
 import com.corundumstudio.socketio.listener.DataListener;
 import com.corundumstudio.socketio.listener.DisconnectListener;
 import com.corundumstudio.socketio.store.RedissonStoreFactory;
+import com.corundumstudio.socketio.store.pubsub.BaseStoreFactory;
+import com.corundumstudio.socketio.store.pubsub.ConnectMessage;
+import com.corundumstudio.socketio.store.pubsub.PubSubListener;
+import com.corundumstudio.socketio.store.pubsub.PubSubStore;
 
 /**
  * 与{@link SocketIOProtoServer}类似，只是这里添加了redis（redisson封装的）作为存储客户端数据的地方，而不是默认的内存存储（虽然内存存储啥也没做）
  */
-public class SocketIORedissonServer implements ConnectListener, DisconnectListener{
+public class SocketIORedissonServer implements ConnectListener, DisconnectListener, PubSubListener<ConnectMessage>{
 	
 	private static final String HOST = "localhost";
 	private static final int PORT = 3001;
@@ -27,10 +36,23 @@ public class SocketIORedissonServer implements ConnectListener, DisconnectListen
 	//因为redisson也和jedis一样会自动识别其他cluster模式下master和slave
 	private static final String CLUSTER_SERVER = "localhost:7000";
 	
+	private static final boolean useAnnotationListener = false;
+	
 	private final SocketIOServer server;
+	
+	private RedissonClient redisson;
+	private final PubSubStore pubSubStore;
 	
 	public SocketIORedissonServer(){
         server = new SocketIOServer(config());
+        pubSubStore = server.getConfiguration().getStoreFactory().pubSubStore();
+        
+        pubSubStore.subscribe("connected", new PubSubListener<ConnectMessage>() {
+            @Override
+            public void onMessage(ConnectMessage message) {
+                System.out.println("onMessage3: " + message.getNodeId() + ", " + message.getSessionId());
+            }
+        }, ConnectMessage.class);
 	}
 	
 	private Configuration config(){
@@ -42,36 +64,52 @@ public class SocketIORedissonServer implements ConnectListener, DisconnectListen
         
         Config redissonConfig = new Config();
         redissonConfig.useClusterServers().addNodeAddress(CLUSTER_SERVER);
-        //redissonConfig.useSingleServer().setAddress(SINGLE_SERVER_ADDRESS);
-        RedissonClient redisson = Redisson.create(redissonConfig);
+        //redissonConfig.useSingleServer().setAddress(SINGLE_SERVER);
+        this.redisson = Redisson.create(redissonConfig);
+//        RTopic<ConnectMessage> topic = redisson.getTopic("connected");
+//        topic.addListener(new MessageListener<ConnectMessage>() {
+//            @Override
+//            public void onMessage(String channel, ConnectMessage message) {
+//                System.out.println("onMessage1: "+message.getNodeId()+", "+message.getSessionId());
+//            }
+//        });
         
 //        RMap<String, String> map = redisson.getMap("anyMap");
 //        String str = map.put("123", "123");
 //        System.out.println(map.get("123"));
         
-        socketIOConfig.setStoreFactory(new RedissonStoreFactory(redisson));
+        BaseStoreFactory baseStoreFactory = new RedissonStoreFactory(redisson);
+        socketIOConfig.setStoreFactory(baseStoreFactory);
         return socketIOConfig;
 	}
 	
 	public void start(){
-        server.addConnectListener(this);
-        server.addDisconnectListener(this);
-        
-        server.addEventListener("message", byte[].class, new DataListener<byte[]>() {
-            @Override
-            public void onData(SocketIOClient client, byte[] data, AckRequest ackRequest) {
-            	Message message = Message.parse(data);
-            	System.out.println("Received: "+message.getText());
-                // Transform the text to upper case
-            	message.setText(message.getText().toUpperCase());
-                // Re-encode it and send it back
-            	client.sendEvent("message", message.toByteArray());
-                System.out.println("Sent: "+message.getText());
-            }
-        });
+	    addListeners();
         
         server.start();
         System.out.println("\n------ "+this.getClass().getSimpleName()+"start on "+PORT+" ------\n");
+	}
+	
+	private void addListeners(){
+	    if(useAnnotationListener){
+	        server.addListeners(new MessageAnnotation(pubSubStore));
+	    }else{
+	        server.addConnectListener(this);
+	        server.addDisconnectListener(this);
+
+	        server.addEventListener("message", byte[].class, new DataListener<byte[]>() {
+	            @Override
+	            public void onData(SocketIOClient client, byte[] data, AckRequest ackRequest) {
+	                Message message = Message.parse(data);
+	                System.out.println("Received: " + message.getText());
+	                // Transform the text to upper case
+	                message.setText(message.getText().toUpperCase());
+	                // Re-encode it and send it back
+	                client.sendEvent("message", message.toByteArray());
+	                System.out.println("Sent: " + message.getText());
+	            }
+	        });
+	    }
 	}
 	
 	public void stop(){
@@ -83,13 +121,42 @@ public class SocketIORedissonServer implements ConnectListener, DisconnectListen
 	    String sessionId = client.getSessionId().toString();
 	    client.set("sessionId", sessionId);
 	    System.out.println(sessionId+" connecting..."+client.get("sessionId"));
+//	    RTopic<ConnectMessage> topic = redisson.getTopic("connected");
+//	    topic.publish(new ConnectMessage(client.getSessionId()));
+	    pubSubStore.publish("connected", new ConnectMessage(client.getSessionId()));
+	    
+	    //testRedissonAdd();
 	}
+	
+	private void testRedissonAdd(){
+	    List<Integer> list = redisson.getList("list");
+        list.add(1);
+        list.add(2);
+        list.add(3);
+        list.add(4);
+        
+        Message message = new Message("text_"+new Random().nextInt());
+        List<Message> msgList = redisson.getList("msgList");
+        msgList.add(message);
+	}
+	
+	@Override
+    public void onMessage(ConnectMessage message) {
+	    System.out.println("onMessage2: "+message.getNodeId()+", "+message.getSessionId());
+    }
 	
 	@Override
 	public void onDisconnect(SocketIOClient client) {
 	    String sessionId = client.getSessionId().toString();
 		System.out.println(sessionId+" disconnecting..."+client.get("sessionId"));
-		client.del(sessionId);
+		client.del("sessionId");
+		
+		//testRedissonFind();
+	}
+	
+	private void testRedissonFind(){
+	    System.out.println(Arrays.toString(redisson.getList("list").toArray()));
+        System.out.println(Arrays.toString(redisson.getList("msgList").toArray()));
 	}
 	
 	public static void main(String[] args){
