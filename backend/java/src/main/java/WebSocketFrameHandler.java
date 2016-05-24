@@ -44,18 +44,18 @@ public class WebSocketFrameHandler extends SimpleChannelInboundHandler<WebSocket
             logger.info("{} received {}", ctx.channel(), request);
             ctx.channel().writeAndFlush(new TextWebSocketFrame(request.toUpperCase(Locale.US)));
         } else if(frame instanceof BinaryWebSocketFrame){
-        	ByteBuf byteBuf = ((BinaryWebSocketFrame) frame).content();
-        	byte[] data = new byte[byteBuf.capacity()];
-        	byteBuf.readBytes(data);
-        	Message message = Message.parse(data);
-        	System.out.println("Received: "+message.getText());
+            ByteBuf byteBuf = ((BinaryWebSocketFrame) frame).content();
+            byte[] data = new byte[byteBuf.capacity()];
+            byteBuf.readBytes(data);
+            Message message = Message.parse(data);
+            System.out.println("Received: "+message.getText());
             // Transform the text to upper case
-        	message.setText(message.getText().toUpperCase());
+            message.setText(message.getText().toUpperCase());
             // Re-encode it and send it back
-        	byte[] bytes = message.toByteArray();
-        	ByteBuf payload = ctx.alloc().buffer(bytes.length);
-        	payload.writeBytes(bytes);
-        	ctx.channel().writeAndFlush(new BinaryWebSocketFrame(payload));
+            byte[] bytes = message.toByteArray();
+            ByteBuf payload = ctx.alloc().buffer(bytes.length);
+            payload.writeBytes(bytes);
+            ctx.channel().writeAndFlush(new BinaryWebSocketFrame(payload));
             System.out.println("Sent: "+message.getText());
         } else {
             String message = "unsupported frame type: " + frame.getClass().getName();
