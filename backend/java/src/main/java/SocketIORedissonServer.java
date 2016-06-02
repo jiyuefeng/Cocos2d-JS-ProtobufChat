@@ -1,6 +1,8 @@
 import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
 
 import org.redisson.Config;
 import org.redisson.Redisson;
@@ -20,6 +22,8 @@ import com.corundumstudio.socketio.store.pubsub.BaseStoreFactory;
 import com.corundumstudio.socketio.store.pubsub.ConnectMessage;
 import com.corundumstudio.socketio.store.pubsub.PubSubListener;
 import com.corundumstudio.socketio.store.pubsub.PubSubStore;
+import com.why.game.chat.Protocol;
+import com.why.game.chat.proto.ChatProtoEncoder;
 
 /**
  * 与{@link SocketIOProtoServer}类似，只是这里添加了redis（redisson封装的）作为存储客户端数据的地方，而不是默认的内存存储（虽然内存存储啥也没做）
@@ -27,7 +31,7 @@ import com.corundumstudio.socketio.store.pubsub.PubSubStore;
 public class SocketIORedissonServer implements ConnectListener, DisconnectListener, PubSubListener<ConnectMessage>{
     
     private static final String HOST = "localhost";
-    private static final int PORT = 3001;
+    private static final int PORT = 3002;
     
     //单机模式
     private static final String SINGLE_SERVER = "localhost:6381";
@@ -47,12 +51,29 @@ public class SocketIORedissonServer implements ConnectListener, DisconnectListen
         server = new SocketIOServer(config());
         pubSubStore = server.getConfiguration().getStoreFactory().pubSubStore();
         
-        pubSubStore.subscribe("connected", new PubSubListener<ConnectMessage>() {
+//        pubSubStore.subscribe("connected", new PubSubListener<ConnectMessage>() {
+//            @Override
+//            public void onMessage(ConnectMessage message) {
+//                System.out.println("onMessage3: " + message.getNodeId() + ", " + message.getSessionId());
+//            }
+//        }, ConnectMessage.class);
+        
+        pubSubStore.subscribe("broadcast", new PubSubListener<BroadcastMessage>() {
             @Override
-            public void onMessage(ConnectMessage message) {
-                System.out.println("onMessage3: " + message.getNodeId() + ", " + message.getSessionId());
+            public void onMessage(BroadcastMessage message) {
+                System.out.println("broadcastMessage: " + message.getNodeId());
+                
+                for(final SocketIOClient socketClient:server.getBroadcastOperations().getClients()){
+                    System.out.println("SessionId: "+socketClient.getSessionId()+", "+socketClient.get("sessionId"));
+                    executor.execute(new Runnable(){
+                        @Override
+                        public void run() {
+                            socketClient.sendEvent("message", message.getData());
+                        }
+                    });
+                }
             }
-        }, ConnectMessage.class);
+        }, BroadcastMessage.class);
     }
     
     private Configuration config(){
@@ -105,11 +126,32 @@ public class SocketIORedissonServer implements ConnectListener, DisconnectListen
                     // Transform the text to upper case
                     message.setText(message.getText().toUpperCase());
                     // Re-encode it and send it back
-                    client.sendEvent("message", message.toByteArray());
+                    //client.sendEvent("message", message.toByteArray());
+                    //server.getBroadcastOperations().sendEvent("message", message.toByteArray());
+                    broadcast(message.toByteArray());
                     System.out.println("Sent: " + message.getText());
+                    
                 }
             });
         }
+    }
+    
+    private final Executor executor = Executors.newCachedThreadPool();
+    
+    private void broadcast(final byte[] msg){
+        //为什么使用上面的无论是全局广播还是房间广播的操作都不行呢？
+        //只能使用如下for一个个去发送吗？
+        for(final SocketIOClient socketClient:server.getBroadcastOperations().getClients()){
+            //System.out.println("SessionId: "+socketClient.getSessionId());
+            executor.execute(new Runnable(){
+                @Override
+                public void run() {
+                    socketClient.sendEvent("message", msg);
+                }
+            });
+        }
+        
+        pubSubStore.publish("broadcast", new BroadcastMessage(msg));
     }
     
     public void stop(){
