@@ -31,7 +31,7 @@ import com.why.game.chat.proto.ChatProtoEncoder;
 public class SocketIORedissonServer implements ConnectListener, DisconnectListener, PubSubListener<ConnectMessage>{
     
     private static final String HOST = "localhost";
-    private static final int PORT = 3002;
+    private static final int PORT = 3001;
     
     //单机模式
     private static final String SINGLE_SERVER = "localhost:6381";
