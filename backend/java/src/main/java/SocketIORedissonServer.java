@@ -83,6 +83,8 @@ public class SocketIORedissonServer implements ConnectListener, DisconnectListen
         socketIOConfig.setMaxFramePayloadLength(1024 * 1024);
         socketIOConfig.setMaxHttpContentLength(1024 * 1024);
         
+//        socketIOConfig.setOrigin("http://localhost:3000");
+        
         Config redissonConfig = new Config();
         redissonConfig.useClusterServers().addNodeAddress(CLUSTER_SERVER);
         //redissonConfig.useSingleServer().setAddress(SINGLE_SERVER);
